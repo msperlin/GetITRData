@@ -6,14 +6,11 @@
 You can install the development version from github:
 
 ```
-devtools::install_github('msperlin/GetHFData')
+devtools::install_github('msperlin/GetDFPData')
 ``` 
     
 The stable version is availabe in CRAN:
 
 ```
-install.packages('GetHFData')
+install.packages('GetDFPData')
 ``` 
-
-## Downloading and aggregating TRADE data
-
