@@ -1,2 +1,19 @@
-# GetDFPData
-Development version of GetDFPData
+## DFP package
+
+
+## Instalation
+
+You can install the development version from github:
+
+```
+devtools::install_github('msperlin/GetHFData')
+``` 
+    
+The stable version is availabe in CRAN:
+
+```
+install.packages('GetHFData')
+``` 
+
+## Downloading and aggregating TRADE data
+

@@ -1,0 +1,19 @@
+Package: GetDFPData
+Title: Reading data from Bovespa SFP system
+Version: 1.3
+Date: 2017-05-29
+Authors@R: person("Marcelo", "Perlin", email = "marceloperlin@gmail.com", role = c("aut", "cre"))
+Description: Reading data from Bovespa SFP system <ftp://ftp.bmf.com.br/MarketData/>.
+Depends:
+    R (>= 3.3.0)
+Imports: stringr,XML
+License: GPL-2
+BugReports: https://github.com/msperlin/GetDFPData/issues
+URL: https://github.com/msperlin/GetDFPData/
+LazyData: true
+RoxygenNote: 6.0.1
+Suggests: knitr,
+    rmarkdown,
+    testthat,
+    ggplot2
+VignetteBuilder: knitr
