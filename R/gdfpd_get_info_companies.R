@@ -10,7 +10,7 @@ gdfpd.get.info.companies <- function() {
 
   # get data from github
 
-  cat('\nReading file from github')
+  cat('\nReading info file from github')
   link.github <- 'https://raw.githubusercontent.com/msperlin/GetDFPData_auxiliary/master/InfoBovespaCompanies.csv'
 
   my.cols <- readr::cols(
@@ -23,11 +23,14 @@ gdfpd.get.info.companies <- function() {
 
 
   df.info <- readr::read_csv(link.github, col_types = my.cols)
-
-  cat('\nFound', nrow(df.info), 'lines for', length(unique(df.info$name.company)), 'companies')
+  n.actives <- sum(unique(df.info[ ,c('name.company', 'situation')])$situation == 'ATIVO')
+  n.inactives <- sum(unique(df.info[ ,c('name.company', 'situation')])$situation == 'CANCELADA')
+  
+  cat('\nFound', nrow(df.info), 'lines for', length(unique(df.info$name.company)), 'companies ',
+      '[Actives = ', n.actives, ' Inactives = ', n.inactives, ']')
 
   my.last.update <- readLines('https://raw.githubusercontent.com/msperlin/GetDFPData_auxiliary/master/LastUpdate.txt')
-  cat('\nLast update: ', my.last.update)
+  cat('\nLast file update: ', my.last.update)
 
   return(df.info)
 }
