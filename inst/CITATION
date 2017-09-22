@@ -1,6 +1,0 @@
-bibentry(bibtype = "Manual",
-         title = "GetDFPData: A R Package for Reading DFP Files from Bovespa",
-         author = c(person("Marcelo", "Perlin"),
-         year = 2017,
-         journal = 'Working Paper',
-         url = "")

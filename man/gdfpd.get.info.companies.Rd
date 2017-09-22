@@ -7,12 +7,16 @@
 gdfpd.get.info.companies()
 }
 \value{
-A dataframe with information about Bovespa companies
+A dataframe with several information about Bovespa companies
 }
 \description{
-Reads up to date information about Bovespa companies from a github file
+A csv file with information about available companies and time periods is downloaded from github and read.
+This file is updated periodically and manually by the author.
 }
 \examples{
 
+\dontrun{ # make it fast to run in CRAN
 df.info <- gdfpd.get.info.companies()
+str(df.info)
+}
 }

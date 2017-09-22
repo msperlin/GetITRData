@@ -2,14 +2,45 @@
 % Please edit documentation in R/gdfpd_GetDFPData.R
 \name{gdfpd.GetDFPData}
 \alias{gdfpd.GetDFPData}
-\title{Downloads and reads Title}
+\title{Downloads and reads financial statements from Bovespa}
 \usage{
-gdfpd.GetDFPData(name.companies, first.date, last.date,
-  folder.out = tempdir())
+gdfpd.GetDFPData(name.companies, first.date = Sys.Date() - 6 * 30,
+  last.date = Sys.Date(), type.info = "individual",
+  folder.out = tempdir(), be.quiet = FALSE)
 }
 \arguments{
-\item{folder.out}{}
+\item{name.companies}{Names of companies to get financial information (e.g. 'PETROBRAS'). Names of companies can be found using function gdfpd.get.info.companies()}
+
+\item{first.date}{First date (YYYY-MM-DD) to get data (e.g. first.date = '2010-01-01')}
+
+\item{last.date}{Last date (YYYY-MM-DD) to get data (e.g. last.date = '2017-01-01')}
+
+\item{type.info}{Type of financial statements ('individual' (default) or 'consolidated'). The individual type only includes
+financial statements from the company itself. while consolidated statements includes information about controlled companies}
+
+\item{folder.out}{Folder where to download the zip files (defauld = tempdir())}
+
+\item{be.quiet}{Should the function output information about progress? TRUE (default) or FALSE}
+}
+\value{
+A tibble (dataframe with lists) object with all gathered financial statements, with each company as a row in the tibble.
 }
 \description{
-Downloads and reads Title
+Financial statements are downloaded from Bovespa for the user selected combination of companies and time period. The downloaded
+zip file is read by a custom function, which outputs several information that are organized and structured by this function.
+The easist way to get started is to look for names using function gdfpd.search.company('nametolookfor') to search for a company name.
+Alternatively, you can use function gdfpd.get.info.companies to import a dataframe with information for all available companies and time periods.
+}
+\examples{
+
+\dontrun{
+name.companies <- 'PETROBRAS'
+first.date <- '2005-01-01'
+last.date <-  '2006-01-01'
+last.date <- Sys.Date()
+
+df.statements <- gdfpd.GetDFPData(name.companies = name.companies,
+                                  first.date = first.date,
+                                  last.date = last.date)
+ }
 }

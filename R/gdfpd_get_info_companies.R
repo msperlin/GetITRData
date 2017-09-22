@@ -1,11 +1,17 @@
 #' Reads up to date information about Bovespa companies from a github file
 #'
-#' @return A dataframe with information about Bovespa companies
+#' A csv file with information about available companies and time periods is downloaded from github and read.
+#' This file is updated periodically and manually by the author.
+#'
+#' @return A dataframe with several information about Bovespa companies
 #' @export
 #'
 #' @examples
 #'
+#' \dontrun{ # make it fast to run in CRAN
 #' df.info <- gdfpd.get.info.companies()
+#' str(df.info)
+#' }
 gdfpd.get.info.companies <- function() {
 
   # get data from github
@@ -16,8 +22,13 @@ gdfpd.get.info.companies <- function() {
   my.cols <- readr::cols(
     id.company = readr::col_integer(),
     name.company = readr::col_character(),
+    main.sector = readr::col_character(),
+    sub.sector = readr::col_character(),
+    segment = readr::col_character(),
     id.file = readr::col_integer(),
+    dl.link = readr::col_character(),
     id.date = readr::col_date(),
+    id.type = readr::col_character(),
     situation = readr::col_character()
   )
 
@@ -25,7 +36,7 @@ gdfpd.get.info.companies <- function() {
   df.info <- readr::read_csv(link.github, col_types = my.cols)
   n.actives <- sum(unique(df.info[ ,c('name.company', 'situation')])$situation == 'ATIVO')
   n.inactives <- sum(unique(df.info[ ,c('name.company', 'situation')])$situation == 'CANCELADA')
-  
+
   cat('\nFound', nrow(df.info), 'lines for', length(unique(df.info$name.company)), 'companies ',
       '[Actives = ', n.actives, ' Inactives = ', n.inactives, ']')
 

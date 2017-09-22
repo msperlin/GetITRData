@@ -2,20 +2,22 @@
 % Please edit documentation in R/gdfpd_read_zip_file.R
 \name{gdfpd.read.zip.file}
 \alias{gdfpd.read.zip.file}
-\title{Reads a single zip file with financial data for a trimester}
+\title{Reads a single zip file downloaded from Bovespa}
 \usage{
-gdfpd.read.zip.file(my.zip.file, folder.out = tempdir())
+gdfpd.read.zip.file(my.zip.file, folder.to.unzip = tempdir(), id.type)
 }
 \arguments{
 \item{my.zip.file}{Full path to zip file}
 
-\item{folder.out}{Folder to unzip files (default = tempdir())}
+\item{folder.to.unzip}{Folder to unzip files (default = tempdir())}
+
+\item{id.type}{The type of file structure ('after 2011' or 'before 2011')}
 }
 \value{
 A list with several dataframes containing financial statements
 }
 \description{
-Reads a single zip file with financial data for a trimester
+Reads a single zip file downloaded from Bovespa
 }
 \examples{
 # no example
