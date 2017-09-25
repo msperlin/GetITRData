@@ -15,8 +15,9 @@ gdfpd.GetDFPData(name.companies, first.date = Sys.Date() - 6 * 30,
 
 \item{last.date}{Last date (YYYY-MM-DD) to get data (e.g. last.date = '2017-01-01')}
 
-\item{type.info}{Type of financial statements ('individual' (default) or 'consolidated'). The individual type only includes
-financial statements from the company itself. while consolidated statements includes information about controlled companies}
+\item{type.info}{Type of financial statements, 'individual' (default) or 'consolidated'. Argument can be a single value or a vector with the same
+size as name.companies. The individual type only includes financial statements from the company itself, while consolidated statements adds information
+about controlled companies}
 
 \item{folder.out}{Folder where to download the zip files (defauld = tempdir())}
 

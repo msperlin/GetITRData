@@ -8,8 +8,9 @@
 #' @param name.companies Names of companies to get financial information (e.g. 'PETROBRAS'). Names of companies can be found using function gdfpd.get.info.companies()
 #' @param first.date First date (YYYY-MM-DD) to get data (e.g. first.date = '2010-01-01')
 #' @param last.date Last date (YYYY-MM-DD) to get data (e.g. last.date = '2017-01-01')
-#' @param type.info Type of financial statements ('individual' (default) or 'consolidated'). The individual type only includes
-#'  financial statements from the company itself. while consolidated statements includes information about controlled companies
+#' @param type.info Type of financial statements, 'individual' (default) or 'consolidated'. Argument can be a single value or a vector with the same
+#' size as name.companies. The individual type only includes financial statements from the company itself, while consolidated statements adds information
+#' about controlled companies
 #' @param folder.out Folder where to download the zip files (defauld = tempdir())
 #' @param be.quiet Should the function output information about progress? TRUE (default) or FALSE
 #'
@@ -40,6 +41,14 @@ gdfpd.GetDFPData <- function(name.companies,
 
   if ( !(any(type.info %in% possible.values)) ){
     stop('Input type.info should be "individual" or "consolidated"')
+  }
+
+  if (length(type.info) == 1) {
+    type.info <- rep(type.info, length(name.companies))
+  }
+
+  if (length(type.info) != length(name.companies)) {
+    stop('Length of type.info does not match the length of name.companies')
   }
 
   # get data from github
@@ -77,12 +86,7 @@ gdfpd.GetDFPData <- function(name.companies,
   idx <- !is.na(df.to.process$id.company)
   df.to.process <- df.to.process[idx, ]
 
-  # try to find company's names
-  idx <- !name.companies %in% unique(df.to.process$name.company)
 
-  if (any(idx)) {
-    warning(paste0('Cant find available dates for ', paste0(name.companies[idx], collapse = ',\t')))
-  }
 
   if (nrow(df.to.process) == 0){
     stop('Cannot find any dates related to companies in registry..')
@@ -90,18 +94,25 @@ gdfpd.GetDFPData <- function(name.companies,
 
   # msg
   cat(paste0('\n\nDownloading data for ', length(name.companies), ' companies',
-             '\nType of financial statements: ', type.info,
+             '\nType of financial statements: ', paste0(type.info, collapse = '\t'),
              '\nFirst Date: ',first.date,
              '\nLaste Date: ',last.date,
              '\n\n') )
 
+  # try to find company's names
+  idx <- !name.companies %in% unique(df.to.process$name.company)
+
+  if (any(idx)) {
+    cat(paste0('WARNING: Cant find available dates for ', paste0(name.companies[idx], collapse = ', ')))
+  }
+
+  # start processing
   cat(paste0('Starting processing stage:' ) )
 
   for (i.company in unique(df.to.process$name.company) ) {
     temp.df <- df.to.process[df.to.process$name.company == i.company, ]
     cat(paste0('\n', i.company) )
-    #cat(paste0('\n\tFirst trimester:', min(temp.df$id.date)) )
-    #cat(paste0('\n\tLast  trimester:', max(temp.df$id.date)) )
+
     cat(paste0('\n\tAvailable quarters: ', paste0(temp.df$id.date, collapse = '\t')) )
   }
 
@@ -113,6 +124,8 @@ gdfpd.GetDFPData <- function(name.companies,
 
     temp.df <- df.to.process[df.to.process$name.company == i.company,  ]
 
+    #browser()
+    type.info.now <- type.info[which(i.company == name.companies)]
     df.assets <- data.frame()
     df.liabilities <- data.frame()
     df.income <- data.frame()
@@ -151,11 +164,11 @@ gdfpd.GetDFPData <- function(name.companies,
       l.out <- gdfpd.read.zip.file(my.zip.file = temp.file, folder.to.unzip = tempdir(),
                                    id.type = temp.df2$id.type )
 
-      if (type.info == 'individual') {
+      if (type.info.now == 'individual') {
         out.df <- l.out$ind.dfs
       }
 
-      if (type.info == 'consolidated') {
+      if (type.info.now == 'consolidated') {
         out.df <- l.out$cons.dfs
       }
 
@@ -180,6 +193,7 @@ gdfpd.GetDFPData <- function(name.companies,
 
     tibble.company <- tibble::tibble(company.name = i.company,
                                      company.code = temp.df$id.company[1],
+                                     type.info = type.info.now,
                                      min.date = min(temp.df$id.date),
                                      max.date = max(temp.df$id.date),
                                      n.quarters = length(temp.df$id.date),

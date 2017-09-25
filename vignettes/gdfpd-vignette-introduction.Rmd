@@ -1,0 +1,147 @@
+---
+title: "Using GetDFPData to obtain financial statements from Bovespa"
+author: "Marcelo Perlin"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using GetDFPData to obtain financial statements from Bovespa}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+Financial statements of companies traded at Bovespa, the Brazilian exchange, are available in [Bovespa website](http://www.bmfbovespa.com.br/). Acessing the statements within the website is straighforward. Using the data for large scale research, however, is painful. Quarterly statements must be downloaded individually and latter aggregated. Changes in format can make this process painful.
+
+Package `GetDFPData` provides a R interface to all financial statements available in the website. The code works by reading a github file that contains all links in the website. Users can select companies and time periods to download the data. The resulting object is a `tibble` with all financial statements. 
+
+# Installation
+
+```{r, eval=FALSE}
+#install.packages('GetDFPData') # not in CRAN yet
+devtools::install_github('msperlin/GetDFPData')
+```
+
+
+# How to use `GetDFPData`
+
+The starting point of `GetDFPData` is function `gdfpd.search.company`, which will search for a partial match in the companies names. As an example, let's find the _official_ name of Petrobras, one of the largest companies in Brazil:
+
+```{r}
+library(GetDFPData)
+
+gdfpd.search.company('petrobras')
+
+```
+
+We've found it. We have available data from 1998 to 2017. Notice that the situation of the company (active or cancelled) is also presented. This helps verifying the data that can be found in Bovespa.
+
+The content of all available quarterly statements can be acessed with function `gdfpd.get.info.companies`. It will read and parse a .csv file from my [github repository](https://github.com/msperlin/GetDFPData_auxiliary). This will be periodically updated for new quarterly statements. Let's try it out:
+
+```{r}
+df.info <- gdfpd.get.info.companies()
+
+str(df.info)
+```
+
+This file includes several information that are gathred from Bovespa: names of companies, sectors, dates and ids of quarterly statements and, most importantly, the links to download the files. The resulting dataframe can be used to filter and gather information for large scale research such as downloading data for a specific sector.
+
+## Downloading financial information for ONE company
+
+Downloading the financial data is easy, all you need is the names of companies and the desired starting and ending dates. Let's try it for PETROBRAS:
+
+```{r}
+name.companies <- 'PETROBRAS'
+#name.companies <- 'PETROBRAS'
+first.date <- '2009-01-01'
+last.date  <- '2010-01-01'
+type.statements <- 'individual'
+
+df.statements <- gdfpd.GetDFPData(name.companies = name.companies, 
+                                  first.date = first.date,
+                                  last.date = last.date,
+                                  type.info = type.statements)
+```
+
+The resulting object is a `tibble`, a data.frame type of object with tabular structure that allows for lists as items in a column. Let's have a look:
+
+```{r}
+str(df.statements)
+```
+
+We only have one row since we only asked for data for one company. All financial statements for the different quarters are available within `df.statements`. For example the income statements for all desired quarters of PETROBRAS are:
+
+```{r}
+df.income.long <- df.statements$income[[1]]
+
+str(df.income.long)
+```
+
+The resulting dataframe is in the long format, ready for processing. If you need the wide format, with columns as quarters, you can use function `gdfpd.convert.to.wide`:
+
+```{r}
+df.income.wide <- gdfpd.convert.to.wide(df.income.long)
+
+knitr::kable(df.income.wide )
+```
+
+## Downloading financial information for SEVERAL companies
+
+If you are doing serious research, it is likely that you need financial statements for more than one company.  Package `GetDFPData` is specially designed for handling large scale download of data. Let's build a case with 5 randomly selected companies:
+
+```{r}
+set.seed(10)
+my.companies <- sample(unique(df.info$name.company), 5)
+
+first.date <- '2005-01-01'
+last.date  <- '2006-01-01'
+type.statements <- 'individual'
+
+df.statements <- gdfpd.GetDFPData(name.companies = my.companies, 
+                                  first.date = first.date,
+                                  last.date = last.date,
+                                  type.info = type.statements)
+```
+
+And now we can check the resulting `tibble`:
+
+```{r}
+head(df.statements )
+```
+
+Every row of `df.statements` will provide information for one company. Metadata about the corresponding dataframes such as min/max date is available in the first columns. Keeping a tabular structure facilitates the organization and future processing of all financial data. We can use tibble `df.statements` for creating other dataframes in the long format containing data for all companies. See next:
+
+```{r}
+df.assets <- do.call(what = rbind, args = df.statements$assets)
+
+str(df.assets)
+```
+
+As an example, let's use it for plotting the ammount of cash (account 	
+1.01 - Disponibilidades) that each company has relative to its total assets, over time:
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+my.tab <- df.assets %>%
+    group_by(company.name, ref.date) %>%
+    summarise(CASH_by_TA = acc.value[acc.number == '1.01']/ acc.value[acc.number == '1'] )
+
+p <- ggplot(my.tab, aes(x = ref.date, y = CASH_by_TA, fill = company.name)) +
+            geom_col(position = 'dodge' )
+print(p)
+```
+
+
+## Exporting financial data
+
+The package includes function `gdfpd.export.DFP.data` for exporting the financial data to an Excel file. Users can choose between the long and wide format. See next:
+
+```{r}
+my.basename <- 'MyExcelData'
+my.format <- 'xlsx' # only supported so far
+gdfpd.export.DFP.data(data.in = df.statements, 
+                      base.file.name = my.basename,
+                      type.export = my.format,
+                      format.data = 'wide')
+```
+

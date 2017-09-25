@@ -97,7 +97,7 @@ gdfpd.export.DFP.data <- function(data.in,
   }
 
   cat('\nExport sucessful')
-  return('\nExport sucessful')
+  #return('\nExport sucessful')
 }
 
 

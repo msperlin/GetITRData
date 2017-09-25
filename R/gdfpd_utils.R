@@ -56,8 +56,25 @@ gdfpd.search.company <- function(char.to.search) {
 
   char.out <- stats::na.omit(unique.names[idx])
 
+  temp.df <- unique(df.info[df.info$name.company %in% char.out, c('name.company', 'id.date', 'situation')])
+
   cat('\n\nFound', length(char.out), 'companies:')
-  cat(paste0('\n', paste0(char.out, collapse = '\n')) )
+
+  for (i.company in char.out) {
+
+    temp.df <- df.info[which(df.info$name.company == i.company), ]
+
+    first.date <- min(stats::na.omit(temp.df$id.date))
+    last.date  <- max(stats::na.omit(temp.df$id.date))
+
+    cat(paste0('\n', paste0(i.company, paste0(rep(' ', max(nchar(char.out)) - nchar(i.company)),
+                                              collapse = '' ),
+                            ' | situation = ', temp.df$situation[1],
+                            ' | first date = ', first.date,
+                            ' | last date - ',  last.date) ) )
+  }
+
+  cat('\n\n')
 
 }
 
@@ -96,4 +113,39 @@ gdfpd.fix.dataframes <- function(df.in) {
   df.in$acc.desc <- desc.to.use[idx]
 
   return(df.in)
+}
+
+#' Reads FWF file from bovespa (internal)
+#'
+#' @param my.f File to be read
+#'
+#' @return A dataframe with data
+#'
+#' @examples
+#' # no example
+gdfpd.read.fwf.file <- function(my.f) {
+
+  # set cols for fwf
+  my.col.types <- readr::cols(
+    acc.number = readr::col_character(),
+    acc.desc = readr::col_character(),
+    acc.value = readr::col_integer()
+  )
+
+  my.col.names<-  c('acc.number', 'acc.desc', 'acc.value')
+  my.pos <- readr::fwf_positions(start = c(15, 28, 74), end = c(27, 73, 88),
+                                 col_names = my.col.names)
+
+  df.out <- readr::read_fwf(my.f, my.pos,
+                               locale = readr::locale(encoding = 'Latin1'), col_types =  my.col.types)
+
+  # fix for empty data
+  if (nrow(df.out) == 0) {
+    df.out <- tibble::tibble(acc.number = NA,
+                             acc.desc = NA,
+                             acc.value = NA)
+  }
+
+  return(df.out)
+
 }

@@ -147,19 +147,14 @@ gdfpd.read.zip.file.type.1 <- function(my.zip.file, folder.to.unzip = tempdir())
   df.liabilities <- stats::na.omit(consolidated.df[stringr::str_sub(consolidated.df$acc.number,1,1) == '2', ])
   df.income    <- stats::na.omit(consolidated.df[stringr::str_sub(consolidated.df$acc.number,1,1) == '3', ])
 
+
   l.consolidated.dfs <- list(df.assets = df.assets,
                              df.liabilities = df.liabilities,
                              df.income = df.income)
 
-  my.l <- list(ind.dfs = l.individual.dfs, cons.dfs = l.consolidated.dfs)
+  my.l <- list(ind.dfs = l.individual.dfs,
+               cons.dfs = l.consolidated.dfs)
 
-  #browser()
-  # my.l <- tibble::tibble(company.name = company.name,
-  #                        ref.date = date.docs,
-  #                        cvm.code = company.cvm_code,
-  #                        assets = list(l.individual.dfs$df.assets),
-  #                        liabilities = list(l.individual.dfs$df.liabilities),
-  #                        income.statements = list(l.individual.dfs$df.dre))
   return(my.l)
 }
 
@@ -181,28 +176,19 @@ gdfpd.read.zip.file.type.2 <- function(my.zip.file, folder.to.unzip = tempdir())
 
   utils::unzip(my.zip.file, exdir = rnd.folder.name, junkpaths = TRUE)
 
-  # set cols for fwf
-  my.col.types <- readr::cols(
-      acc.number = readr::col_character(),
-    acc.desc = readr::col_character(),
-    acc.value = readr::col_integer()
-  )
-
-  my.pos <- readr::fwf_positions(start = c(15, 28, 74), end = c(27, 73, 88),
-                              col_names = c('acc.number', 'acc.desc', 'acc.value')  )
   # get individual fin statements
 
   my.f <- paste0(rnd.folder.name,'/ITRBPAE.001')
-  df.assets <- readr::read_fwf(my.f, my.pos,
-                  locale = readr::locale(encoding = 'Latin1'), col_types =  my.col.types)
+  my.f <- list.files(rnd.folder.name, pattern = 'ITRBPA', full.names = T)
+  df.assets <- gdfpd.read.fwf.file(my.f)
 
   my.f <- paste0(rnd.folder.name,'/ITRBPPE.001')
-  df.liabilities <- readr::read_fwf(my.f, my.pos,
-                               locale = readr::locale(encoding = 'Latin1'), col_types =  my.col.types)
+  my.f <- list.files(rnd.folder.name, pattern = 'ITRBPP', full.names = T)
+  df.liabilities <- gdfpd.read.fwf.file(my.f)
 
   my.f <- paste0(rnd.folder.name,'/ITRDEREE.001')
-  df.income <- readr::read_fwf(my.f, my.pos,
-                                    locale = readr::locale(encoding = 'Latin1'), col_types =  my.col.types)
+  my.f <- list.files(rnd.folder.name, pattern = 'ITRDERE', full.names = T)
+  df.income <- gdfpd.read.fwf.file(my.f)
 
   l.individual.dfs <- list(df.assets = df.assets,
                            df.liabilities = df.liabilities,
@@ -212,23 +198,24 @@ gdfpd.read.zip.file.type.2 <- function(my.zip.file, folder.to.unzip = tempdir())
   # get consolidated fin statements
 
   my.f <- paste0(rnd.folder.name,'/ITRCBPAE.001')
-  df.assets <- readr::read_fwf(my.f, my.pos,
-                               locale = readr::locale(encoding = 'Latin1'), col_types =  my.col.types)
+  my.f <- list.files(rnd.folder.name, pattern = 'ITRCBPA', full.names = T)
+  df.assets <- gdfpd.read.fwf.file(my.f)
 
   my.f <- paste0(rnd.folder.name,'/ITRCBPPE.001')
-  df.liabilities <- readr::read_fwf(my.f, my.pos,
-                                    locale = readr::locale(encoding = 'Latin1'), col_types =  my.col.types)
+  my.f <- list.files(rnd.folder.name, pattern = 'ITRCBPP', full.names = T)
+  df.liabilities <- gdfpd.read.fwf.file(my.f)
 
   my.f <- paste0(rnd.folder.name,'/ITRCDERE.001')
-  df.income <- readr::read_fwf(my.f, my.pos,
-                               locale = readr::locale(encoding = 'Latin1'), col_types =  my.col.types)
+  my.f <- list.files(rnd.folder.name, pattern = 'ITRCDER', full.names = T)
+  df.income <- gdfpd.read.fwf.file(my.f)
 
   l.consolidated.dfs<- list(df.assets = df.assets,
                            df.liabilities = df.liabilities,
                            df.income = df.income)
   # get basic info
 
-  my.l <- list(ind.dfs = l.individual.dfs, cons.dfs = l.consolidated.dfs)
+  my.l <- list(ind.dfs = l.individual.dfs,
+               cons.dfs = l.consolidated.dfs)
 
   return(my.l)
 }

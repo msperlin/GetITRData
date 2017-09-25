@@ -34,8 +34,13 @@ gdfpd.get.info.companies <- function() {
 
 
   df.info <- readr::read_csv(link.github, col_types = my.cols)
+
+  # remove rows without id for dates or situation
+  idx <- (!is.na(df.info$id.date))&(!is.na(df.info$situation))
+  df.info <- df.info[idx, ]
+
   n.actives <- sum(unique(df.info[ ,c('name.company', 'situation')])$situation == 'ATIVO')
-  n.inactives <- sum(unique(df.info[ ,c('name.company', 'situation')])$situation == 'CANCELADA')
+  n.inactives <- sum(unique(df.info[ ,c('name.company', 'situation')])$situation != 'ATIVO' )
 
   cat('\nFound', nrow(df.info), 'lines for', length(unique(df.info$name.company)), 'companies ',
       '[Actives = ', n.actives, ' Inactives = ', n.inactives, ']')
