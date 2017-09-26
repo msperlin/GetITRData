@@ -51,6 +51,11 @@ gdfpd.GetDFPData <- function(name.companies,
     stop('Length of type.info does not match the length of name.companies')
   }
 
+  # check internet
+  if (!curl::has_internet()) {
+    stop('You need an internet connection to download files from Bovespa.')
+  }
+
   # get data from github
   df.info <- gdfpd.get.info.companies()
   unique.names <- unique(df.info$name.company)
@@ -156,7 +161,12 @@ gdfpd.GetDFPData <- function(name.companies,
         cat('\tfile exists (no dl)')
       } else {
         cat('\tDownloading')
-        utils::download.file(url = dl.link, destfile = temp.file, quiet = T)
+
+        utils::download.file(url = dl.link,
+                             destfile = temp.file,
+                             quiet = T,
+                             mode = 'wb',
+                             method = 'internal')
       }
 
       cat(' | Reading file')

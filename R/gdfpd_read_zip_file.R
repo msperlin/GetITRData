@@ -55,10 +55,10 @@ gdfpd.read.zip.file <- function(my.zip.file, folder.to.unzip = tempdir(), id.typ
 gdfpd.read.zip.file.type.1 <- function(my.zip.file, folder.to.unzip = tempdir()) {
 
   my.basename <- tools::file_path_sans_ext(basename(my.zip.file))
+  my.basename <- iconv(my.basename, to = 'ASCII//TRANSLIT')
   rnd.folder.name <- paste0(folder.to.unzip,'/',paste0('DIR-',my.basename))
 
-  #unlink(rnd.folder.name)
-  #dir.create(rnd.folder.name)
+  if (!dir.exists(rnd.folder.name)) dir.create(rnd.folder.name)
 
   utils::unzip(my.zip.file, exdir = rnd.folder.name)
   company.reg.file <- paste0(rnd.folder.name,'/FormularioCadastral.xml')
@@ -169,10 +169,10 @@ gdfpd.read.zip.file.type.1 <- function(my.zip.file, folder.to.unzip = tempdir())
 gdfpd.read.zip.file.type.2 <- function(my.zip.file, folder.to.unzip = tempdir()) {
 
   my.basename <- tools::file_path_sans_ext(basename(my.zip.file))
+  my.basename <- iconv(my.basename, to = 'ASCII//TRANSLIT')
   rnd.folder.name <- paste0(folder.to.unzip,'/',paste0('DIR-',my.basename))
 
-  #unlink(rnd.folder.name)
-  #dir.create(rnd.folder.name)
+  if (!dir.exists(rnd.folder.name)) dir.create(rnd.folder.name)
 
   utils::unzip(my.zip.file, exdir = rnd.folder.name, junkpaths = TRUE)
 
