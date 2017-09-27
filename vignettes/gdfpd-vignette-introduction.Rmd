@@ -51,7 +51,7 @@ Downloading the financial data is easy, all you need is the names of companies a
 ```{r}
 name.companies <- 'PETROBRAS'
 #name.companies <- 'PETROBRAS'
-first.date <- '2009-01-01'
+first.date <- '1900-01-01'
 last.date  <- '2010-01-01'
 type.statements <- 'individual'
 
@@ -142,6 +142,6 @@ my.format <- 'xlsx' # only supported so far
 gdfpd.export.DFP.data(data.in = df.statements, 
                       base.file.name = my.basename,
                       type.export = my.format,
-                      format.data = 'wide')
+                      format.data = 'long')
 ```
 
