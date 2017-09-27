@@ -12,9 +12,9 @@
 
 <meta name="author" content="Marcelo Perlin" />
 
-<meta name="date" content="2017-09-25" />
+<meta name="date" content="2017-09-27" />
 
-<title>DFP data</title>
+<title>Using GetDFPData to obtain financial statements from Bovespa</title>
 
 
 
@@ -68,28 +68,538 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 
 
-<h1 class="title toc-ignore">DFP data</h1>
+<h1 class="title toc-ignore">Using GetDFPData to obtain financial statements from Bovespa</h1>
 <h4 class="author"><em>Marcelo Perlin</em></h4>
-<h4 class="date"><em>2017-09-25</em></h4>
+<h4 class="date"><em>2017-09-27</em></h4>
 
 
 
+<p>Financial statements of companies traded at B3 (formerly Bovespa), the Brazilian stock exchange, are available in its <a href="http://www.bmfbovespa.com.br/">website</a>. Acessing the data for a single company is straighforward. In the website one can find a simple interface for accessing this dataset. An example is given <a href="https://www.rad.cvm.gov.br/ENETCONSULTA/frmGerenciaPaginaFRE.aspx?NumeroSequencialDocumento=67775&amp;CodigoTipoInstituicao=2">here</a>. However, gathering and organizing the data for a large scale research, with many companies and different time periods, is painful. Quarterly statements must be downloaded individually and latter aggregated. Changes in the accounting format thoughout time can make this process unreliable and prone to error.</p>
+<p>Package <code>GetDFPData</code> provides a R interface to all financial statements available in the website. It not only downloads the data but also organizes it in a tabular format. Users can simply select companies and time periods to download all available data. Several information about companies, such as sector and available quarters are also at reach. The main purpose of the package is to make it easy to access quarterly financial statements in large scale research, facilitating the reproducibility of such studies.</p>
+<div id="installation" class="section level1">
+<h1>Installation</h1>
+<p>The package is available in CRAN (release version) and in Github (development version). You can install any of those with the following code:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Release version in CRAN</span>
+<span class="kw">install.packages</span>(<span class="st">'GetDFPData'</span>) <span class="co"># not in CRAN yet</span>
+
+<span class="co"># Development version in Github</span>
+devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">'msperlin/GetDFPData'</span>)</code></pre></div>
+</div>
+<div id="how-to-use-getdfpdata" class="section level1">
+<h1>How to use <code>GetDFPData</code></h1>
+<p>The starting point of <code>GetDFPData</code> is to find the official names of companies in Bovespa. Function <code>gdfpd.search.company</code> serves this purpose. Given a string (text), it will search for a partial matches in companies names. As an example, let’s find the <em>official</em> name of Petrobras, one of the largest companies in Brazil:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(GetDFPData)
 
-<span class="kw">gdfpd.search.company</span>(<span class="st">'marcopolo'</span>)</code></pre></div>
+<span class="kw">gdfpd.search.company</span>(<span class="st">'petrobras'</span>)</code></pre></div>
 <pre><code>## 
 ## Reading info file from github
-## Found 24012 lines for 603 companies  [Actives =  457  Inactives =  141 ]
+## Found 24012 lines for 603 companies  [Actives =  457  Inactives =  146 ]
 ## Last file update:  2017-09-19
 ## 
-## Found 2 companies:
-## CIA MARCOPOLO | situation = ATIVO | first date = 1998-09-30 | last date - 2017-06-30
-## MARCOPOLO     | situation = ATIVO | first date = 1998-09-30 | last date - 2017-06-30</code></pre>
-<pre><code>## [1] &quot;CIA MARCOPOLO&quot; &quot;MARCOPOLO&quot;    
-## attr(,&quot;na.action&quot;)
-## [1] 1
-## attr(,&quot;class&quot;)
-## [1] &quot;omit&quot;</code></pre>
+## Found 1 companies:
+## PETROBRAS | situation = ATIVO | first date = 1998-09-30 | last date - 2017-06-30</code></pre>
+<p>Its official name in Bovespa records is PETROBRAS. Data for quarterly statements is available from 1998 to 2017. Notice that the situation of the company (active or cancelled) is also presented. This helps verifying the availablility of data.</p>
+<p>The content of all available quarterly statements can be acessed with function <code>gdfpd.get.info.companies</code>. It will read and parse a .csv file from my <a href="https://github.com/msperlin/GetDFPData_auxiliary">github repository</a>. This will be periodically updated for new quarterly statements. I hope I can set it to run automatically using a cloud service. Let’s try it out:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df.info &lt;-<span class="st"> </span><span class="kw">gdfpd.get.info.companies</span>()</code></pre></div>
+<pre><code>## 
+## Reading info file from github
+## Found 24012 lines for 603 companies  [Actives =  457  Inactives =  146 ]
+## Last file update:  2017-09-19</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">str</span>(df.info)</code></pre></div>
+<pre><code>## Classes 'tbl_df', 'tbl' and 'data.frame':    24012 obs. of  10 variables:
+##  $ id.company  : int  16330 16330 16330 16330 16330 16330 16330 16330 16330 16330 ...
+##  $ name.company: chr  &quot;521 PARTICIPAÇÕES S/A&quot; &quot;521 PARTICIPAÇÕES S/A&quot; &quot;521 PARTICIPAÇÕES S/A&quot; &quot;521 PARTICIPAÇÕES S/A&quot; ...
+##  $ main.sector : chr  NA NA NA NA ...
+##  $ sub.sector  : chr  NA NA NA NA ...
+##  $ segment     : chr  NA NA NA NA ...
+##  $ id.file     : int  47368 42591 40601 37569 32706 30654 27521 22269 20368 17649 ...
+##  $ dl.link     : chr  &quot;http://www.rad.cvm.gov.br/enetconsulta/frmDownloadDocumento.aspx?CodigoInstituicao=2&amp;NumeroSequencialDocumento=47368&quot; &quot;http://www.rad.cvm.gov.br/enetconsulta/frmDownloadDocumento.aspx?CodigoInstituicao=2&amp;NumeroSequencialDocumento=42591&quot; &quot;http://www.rad.cvm.gov.br/enetconsulta/frmDownloadDocumento.aspx?CodigoInstituicao=2&amp;NumeroSequencialDocumento=40601&quot; &quot;http://www.rad.cvm.gov.br/enetconsulta/frmDownloadDocumento.aspx?CodigoInstituicao=2&amp;NumeroSequencialDocumento=37569&quot; ...
+##  $ id.date     : Date, format: &quot;2015-03-31&quot; &quot;2014-09-30&quot; ...
+##  $ id.type     : chr  &quot;after 2011&quot; &quot;after 2011&quot; &quot;after 2011&quot; &quot;after 2011&quot; ...
+##  $ situation   : chr  &quot;ATIVO&quot; &quot;ATIVO&quot; &quot;ATIVO&quot; &quot;ATIVO&quot; ...</code></pre>
+<p>This file includes several information that are gathred from Bovespa: names of companies, sectors, dates quarterly statements and, most importantly, the links to download the files. The resulting dataframe can be used to filter and gather information for large scale research such as downloading financial data for a specific sector.</p>
+<div id="downloading-financial-information-for-one-company" class="section level2">
+<h2>Downloading financial information for ONE company</h2>
+<p>All you need to download financial data with <code>GetDFPData</code> are the official names of companies, which can be found with <code>gdfpd.search.company</code>, the desired starting and ending dates and the type of financial information (individual or consolidated). Let’s try it for PETROBRAS:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">name.companies &lt;-<span class="st"> 'PETROBRAS'</span>
+first.date &lt;-<span class="st"> '2005-01-01'</span>
+last.date  &lt;-<span class="st"> '2006-01-01'</span>
+type.statements &lt;-<span class="st"> 'individual'</span>
+
+df.statements &lt;-<span class="st"> </span><span class="kw">gdfpd.GetDFPData</span>(<span class="dt">name.companies =</span> name.companies, 
+                                  <span class="dt">first.date =</span> first.date,
+                                  <span class="dt">last.date =</span> last.date,
+                                  <span class="dt">type.info =</span> type.statements)</code></pre></div>
+<pre><code>## 
+## Reading info file from github
+## Found 24012 lines for 603 companies  [Actives =  457  Inactives =  146 ]
+## Last file update:  2017-09-19
+## 
+## Downloading data for 1 companies
+## Type of financial statements: individual
+## First Date: 2005-01-01
+## Laste Date: 2006-01-01
+## 
+## Starting processing stage:
+## PETROBRAS
+##  Available quarters: 2005-09-30  2005-06-30  2005-03-31
+## 
+## 
+## Processing PETROBRAS, Quarter = 2005-09-30   Downloading | Reading file
+## Processing PETROBRAS, Quarter = 2005-06-30   Downloading | Reading file
+## Processing PETROBRAS, Quarter = 2005-03-31   Downloading | Reading file</code></pre>
+<p>The resulting object is a <code>tibble</code>, a data.frame type of object that allows for list columns. Let’s have a look in its content:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">str</span>(df.statements)</code></pre></div>
+<pre><code>## Classes 'tbl_df', 'tbl' and 'data.frame':    1 obs. of  9 variables:
+##  $ company.name: chr &quot;PETROBRAS&quot;
+##  $ company.code: int 9512
+##  $ type.info   : chr &quot;individual&quot;
+##  $ min.date    : Date, format: &quot;2005-03-31&quot;
+##  $ max.date    : Date, format: &quot;2005-09-30&quot;
+##  $ n.quarters  : int 3
+##  $ assets      :List of 1
+##   ..$ :Classes 'tbl_df', 'tbl' and 'data.frame': 191 obs. of  5 variables:
+##   .. ..$ acc.number  : chr  &quot;1&quot; &quot;1.01&quot; &quot;1.01.01&quot; &quot;1.01.01.01&quot; ...
+##   .. ..$ acc.desc    : chr  &quot;Ativo Total&quot; &quot;Ativo Circulante&quot; &quot;Disponibilidades&quot; &quot;Caixa e Bancos&quot; ...
+##   .. ..$ acc.value   : int  147026464 41052623 15146496 1498194 13648302 9450575 3488650 4955111 1090180 -83366 ...
+##   .. ..$ ref.date    : Date, format: &quot;2005-09-30&quot; ...
+##   .. ..$ company.name: chr  &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; ...
+##  $ liabilities :List of 1
+##   ..$ :Classes 'tbl_df', 'tbl' and 'data.frame': 160 obs. of  5 variables:
+##   .. ..$ acc.number  : chr  &quot;2&quot; &quot;2.01&quot; &quot;2.01.01&quot; &quot;2.01.01.01&quot; ...
+##   .. ..$ acc.desc    : chr  &quot;Passivo Total&quot; &quot;Passivo Circulante&quot; &quot;Empréstimos e Financiamentos&quot; &quot;Financiamentos&quot; ...
+##   .. ..$ acc.value   : int  147026464 44603494 1154258 1039841 114417 0 5205735 7429086 1156875 935603 ...
+##   .. ..$ ref.date    : Date, format: &quot;2005-09-30&quot; ...
+##   .. ..$ company.name: chr  &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; ...
+##  $ income      :List of 1
+##   ..$ :Classes 'tbl_df', 'tbl' and 'data.frame': 100 obs. of  5 variables:
+##   .. ..$ acc.number  : chr  &quot;3.01&quot; &quot;3.02&quot; &quot;3.03&quot; &quot;3.04&quot; ...
+##   .. ..$ acc.desc    : chr  &quot;Receita Bruta de Vendas e/ou Serviços&quot; &quot;Deduções da Receita Bruta&quot; &quot;Receita Líquida de Vendas e/ou Serviços&quot; &quot;Custo de Bens e/ou Serviços Vendidos&quot; ...
+##   .. ..$ acc.value   : int  37870949 -9778549 28092400 -15030559 13061841 -4270217 -1221668 -895230 -899 -894331 ...
+##   .. ..$ ref.date    : Date, format: &quot;2005-09-30&quot; ...
+##   .. ..$ company.name: chr  &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; ...</code></pre>
+<p>Object <code>df.statements</code> only has one row since we only asked for data of one company. The number of rows increases with the number of companies, as we will soon learn with the next example. All financial statements for the different quarters are available within <code>df.statements</code>. For example, the income statements for all desired quarters of PETROBRAS are:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df.income.long &lt;-<span class="st"> </span>df.statements<span class="op">$</span>income[[<span class="dv">1</span>]]
+
+<span class="kw">str</span>(df.income.long)</code></pre></div>
+<pre><code>## Classes 'tbl_df', 'tbl' and 'data.frame':    100 obs. of  5 variables:
+##  $ acc.number  : chr  &quot;3.01&quot; &quot;3.02&quot; &quot;3.03&quot; &quot;3.04&quot; ...
+##  $ acc.desc    : chr  &quot;Receita Bruta de Vendas e/ou Serviços&quot; &quot;Deduções da Receita Bruta&quot; &quot;Receita Líquida de Vendas e/ou Serviços&quot; &quot;Custo de Bens e/ou Serviços Vendidos&quot; ...
+##  $ acc.value   : int  37870949 -9778549 28092400 -15030559 13061841 -4270217 -1221668 -895230 -899 -894331 ...
+##  $ ref.date    : Date, format: &quot;2005-09-30&quot; &quot;2005-09-30&quot; ...
+##  $ company.name: chr  &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; ...</code></pre>
+<p>The resulting dataframe is in the long format, ready for processing. In the long format, financial statements of different quarters are stacked. In the wide format, we have the quarters as dates. If you want the wide format, which we believe is most common in financial analysis, you can use function <code>gdfpd.convert.to.wide</code>. See an example next:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df.income.wide &lt;-<span class="st"> </span><span class="kw">gdfpd.convert.to.wide</span>(df.income.long)
+
+knitr<span class="op">::</span><span class="kw">kable</span>(df.income.wide )</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">acc.number</th>
+<th align="left">acc.desc</th>
+<th align="left">company.name</th>
+<th align="right">2005-03-31</th>
+<th align="right">2005-06-30</th>
+<th align="right">2005-09-30</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">3.01</td>
+<td align="left">Receita Bruta de Vendas e/ou Serviços</td>
+<td align="left">PETROBRAS</td>
+<td align="right">31355183</td>
+<td align="right">35425584</td>
+<td align="right">37870949</td>
+</tr>
+<tr class="even">
+<td align="left">3.02</td>
+<td align="left">Deduções da Receita Bruta</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-8788723</td>
+<td align="right">-9321322</td>
+<td align="right">-9778549</td>
+</tr>
+<tr class="odd">
+<td align="left">3.03</td>
+<td align="left">Receita Líquida de Vendas e/ou Serviços</td>
+<td align="left">PETROBRAS</td>
+<td align="right">22566460</td>
+<td align="right">26104262</td>
+<td align="right">28092400</td>
+</tr>
+<tr class="even">
+<td align="left">3.04</td>
+<td align="left">Custo de Bens e/ou Serviços Vendidos</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-12052044</td>
+<td align="right">-14530594</td>
+<td align="right">-15030559</td>
+</tr>
+<tr class="odd">
+<td align="left">3.05</td>
+<td align="left">Resultado Bruto</td>
+<td align="left">PETROBRAS</td>
+<td align="right">10514416</td>
+<td align="right">11573668</td>
+<td align="right">13061841</td>
+</tr>
+<tr class="even">
+<td align="left">3.06</td>
+<td align="left">Despesas/Receitas Operacionais</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-2869703</td>
+<td align="right">-5249799</td>
+<td align="right">-4270217</td>
+</tr>
+<tr class="odd">
+<td align="left">3.06.01</td>
+<td align="left">Com Vendas</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-858170</td>
+<td align="right">-820899</td>
+<td align="right">-1221668</td>
+</tr>
+<tr class="even">
+<td align="left">3.06.02</td>
+<td align="left">Gerais e Administrativas</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-768830</td>
+<td align="right">-880185</td>
+<td align="right">-895230</td>
+</tr>
+<tr class="odd">
+<td align="left">3.06.02.01</td>
+<td align="left">Honor.Diretoria e Cons. Administração</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-984</td>
+<td align="right">-886</td>
+<td align="right">-899</td>
+</tr>
+<tr class="even">
+<td align="left">3.06.02.02</td>
+<td align="left">De Administração</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-767846</td>
+<td align="right">-879299</td>
+<td align="right">-894331</td>
+</tr>
+<tr class="odd">
+<td align="left">3.06.03</td>
+<td align="left">Financeiras</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-53787</td>
+<td align="right">-480281</td>
+<td align="right">-282706</td>
+</tr>
+<tr class="even">
+<td align="left">3.06.03.01</td>
+<td align="left">Receitas Financeiras</td>
+<td align="left">PETROBRAS</td>
+<td align="right">525452</td>
+<td align="right">106753</td>
+<td align="right">272290</td>
+</tr>
+<tr class="odd">
+<td align="left">3.06.03.02</td>
+<td align="left">Despesas Financeiras</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-579239</td>
+<td align="right">-587034</td>
+<td align="right">-554996</td>
+</tr>
+<tr class="even">
+<td align="left">3.06.04</td>
+<td align="left">Outras Receitas Operacionais</td>
+<td align="left">PETROBRAS</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">3.06.05</td>
+<td align="left">Outras Despesas Operacionais</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-2104923</td>
+<td align="right">-3155693</td>
+<td align="right">-1956858</td>
+</tr>
+<tr class="even">
+<td align="left">3.06.05.01</td>
+<td align="left">Custos Explot.p/Extração Petróleo/Gás</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-107010</td>
+<td align="right">-101527</td>
+<td align="right">-334116</td>
+</tr>
+<tr class="odd">
+<td align="left">3.06.05.02</td>
+<td align="left">Custo c/ Pesq. Desenv. Tecnológico</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-192741</td>
+<td align="right">-221813</td>
+<td align="right">-247456</td>
+</tr>
+<tr class="even">
+<td align="left">3.06.05.03</td>
+<td align="left">Tributárias</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-185581</td>
+<td align="right">-290086</td>
+<td align="right">-114519</td>
+</tr>
+<tr class="odd">
+<td align="left">3.06.05.04</td>
+<td align="left">Variações Monetárias e Cambiais Líquidas</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-117821</td>
+<td align="right">-921626</td>
+<td align="right">-401757</td>
+</tr>
+<tr class="even">
+<td align="left">3.06.05.05</td>
+<td align="left">Outras Despesas/Receitas Oper. Liquidas</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-1501770</td>
+<td align="right">-1620641</td>
+<td align="right">-859010</td>
+</tr>
+<tr class="odd">
+<td align="left">3.06.06</td>
+<td align="left">Resultado da Equivalência Patrimonial</td>
+<td align="left">PETROBRAS</td>
+<td align="right">916007</td>
+<td align="right">87259</td>
+<td align="right">86245</td>
+</tr>
+<tr class="even">
+<td align="left">3.07</td>
+<td align="left">Resultado Operacional</td>
+<td align="left">PETROBRAS</td>
+<td align="right">7644713</td>
+<td align="right">6323869</td>
+<td align="right">8791624</td>
+</tr>
+<tr class="odd">
+<td align="left">3.08</td>
+<td align="left">Resultado Não Operacional</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-151498</td>
+<td align="right">-64670</td>
+<td align="right">1064</td>
+</tr>
+<tr class="even">
+<td align="left">3.08.01</td>
+<td align="left">Receitas</td>
+<td align="left">PETROBRAS</td>
+<td align="right">1256</td>
+<td align="right">8805</td>
+<td align="right">450552</td>
+</tr>
+<tr class="odd">
+<td align="left">3.08.02</td>
+<td align="left">Despesas</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-152754</td>
+<td align="right">-73475</td>
+<td align="right">-449488</td>
+</tr>
+<tr class="even">
+<td align="left">3.09</td>
+<td align="left">Resultado Antes Tributação/Participações</td>
+<td align="left">PETROBRAS</td>
+<td align="right">7493215</td>
+<td align="right">6259199</td>
+<td align="right">8792688</td>
+</tr>
+<tr class="odd">
+<td align="left">3.10</td>
+<td align="left">Provisão para IR e Contribuição Social</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-1847762</td>
+<td align="right">-1151342</td>
+<td align="right">-3002751</td>
+</tr>
+<tr class="even">
+<td align="left">3.11</td>
+<td align="left">IR Diferido</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-538132</td>
+<td align="right">-408725</td>
+<td align="right">-111709</td>
+</tr>
+<tr class="odd">
+<td align="left">3.12</td>
+<td align="left">Participações/Contribuições Estatutárias</td>
+<td align="left">PETROBRAS</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">3.12.01</td>
+<td align="left">Participações</td>
+<td align="left">PETROBRAS</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">3.12.01.01</td>
+<td align="left">Partic. de Empregados e administradores</td>
+<td align="left">PETROBRAS</td>
+<td align="right">0</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">3.12.02</td>
+<td align="left">Contribuições</td>
+<td align="left">PETROBRAS</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">3.13</td>
+<td align="left">Reversão dos Juros sobre Capital Próprio</td>
+<td align="left">PETROBRAS</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">3.15</td>
+<td align="left">Lucro/Prejuízo do Período</td>
+<td align="left">PETROBRAS</td>
+<td align="right">5107321</td>
+<td align="right">4699132</td>
+<td align="right">5678228</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="downloading-financial-information-for-several-companies" class="section level2">
+<h2>Downloading financial information for SEVERAL companies</h2>
+<p>If you are doing serious research, it is likely that you need financial statements for more than one company. Package <code>GetDFPData</code> is specially designed for handling large scale download of data. Let’s build a case with 5 randomly selected companies:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set.seed</span>(<span class="dv">5</span>)
+my.companies &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">unique</span>(df.info<span class="op">$</span>name.company), <span class="dv">5</span>)
+
+first.date &lt;-<span class="st"> '2005-01-01'</span>
+last.date  &lt;-<span class="st"> '2006-01-01'</span>
+type.statements &lt;-<span class="st"> 'individual'</span>
+
+df.statements &lt;-<span class="st"> </span><span class="kw">gdfpd.GetDFPData</span>(<span class="dt">name.companies =</span> my.companies, 
+                                  <span class="dt">first.date =</span> first.date,
+                                  <span class="dt">last.date =</span> last.date,
+                                  <span class="dt">type.info =</span> type.statements)</code></pre></div>
+<pre><code>## 
+## Reading info file from github
+## Found 24012 lines for 603 companies  [Actives =  457  Inactives =  146 ]
+## Last file update:  2017-09-19
+## 
+## Downloading data for 5 companies
+## Type of financial statements: individual individual  individual  individual  individual
+## First Date: 2005-01-01
+## Laste Date: 2006-01-01
+## 
+## WARNING: Cant find available dates for BV LEASINGStarting processing stage:
+## BANESTES S/A
+##  Available quarters: 2005-09-30  2005-06-30  2005-03-31
+## CIA. IGUAÇU DE CAFÉ SOLÚVEL
+##  Available quarters: 2005-09-30  2005-06-30  2005-03-31
+## MUNDIAL
+##  Available quarters: 2005-09-30  2005-06-30  2005-03-31
+## TELEMAR PARTICIPAÇÔES S.A
+##  Available quarters: 2005-09-30  2005-06-30  2005-03-31
+## 
+## 
+## Processing BANESTES S/A, Quarter = 2005-09-30    Downloading | Reading file
+## Processing BANESTES S/A, Quarter = 2005-06-30    Downloading | Reading file
+## Processing BANESTES S/A, Quarter = 2005-03-31    Downloading | Reading file
+## Processing CIA. IGUAÇU DE CAFÉ SOLÚVEL, Quarter = 2005-09-30 Downloading | Reading file
+## Processing CIA. IGUAÇU DE CAFÉ SOLÚVEL, Quarter = 2005-06-30 Downloading | Reading file
+## Processing CIA. IGUAÇU DE CAFÉ SOLÚVEL, Quarter = 2005-03-31 Downloading | Reading file
+## Processing MUNDIAL, Quarter = 2005-09-30 Downloading | Reading file
+## Processing MUNDIAL, Quarter = 2005-06-30 Downloading | Reading file
+## Processing MUNDIAL, Quarter = 2005-03-31 Downloading | Reading file
+## Processing TELEMAR PARTICIPAÇÔES S.A, Quarter = 2005-09-30   Downloading | Reading file
+## Processing TELEMAR PARTICIPAÇÔES S.A, Quarter = 2005-06-30   Downloading | Reading file
+## Processing TELEMAR PARTICIPAÇÔES S.A, Quarter = 2005-03-31   Downloading | Reading file</code></pre>
+<p>And now we can check the resulting <code>tibble</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(df.statements )</code></pre></div>
+<pre><code>## # A tibble: 4 x 9
+##                  company.name company.code  type.info   min.date
+##                         &lt;chr&gt;        &lt;int&gt;      &lt;chr&gt;     &lt;date&gt;
+## 1                BANESTES S/A         1155 individual 2005-03-31
+## 2 CIA. IGUAÇU DE CAFÉ SOLÚVEL         3336 individual 2005-03-31
+## 3                     MUNDIAL         5312 individual 2005-03-31
+## 4   TELEMAR PARTICIPAÇÔES S.A        18678 individual 2005-03-31
+## # ... with 5 more variables: max.date &lt;date&gt;, n.quarters &lt;int&gt;,
+## #   assets &lt;list&gt;, liabilities &lt;list&gt;, income &lt;list&gt;</code></pre>
+<p>Every row of <code>df.statements</code> will provide information for one company. Metadata about the corresponding dataframes such as min/max dates is available in the first columns. Keeping a tabular structure facilitates the organization and future processing of all financial data. We can use tibble <code>df.statements</code> for creating other dataframes in the long format containing data for all companies. See next, where we create dataframes with the assets and liabilitis of all companies:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df.assets &lt;-<span class="st"> </span><span class="kw">do.call</span>(<span class="dt">what =</span> rbind, <span class="dt">args =</span> df.statements<span class="op">$</span>assets)
+df.liabilities &lt;-<span class="st"> </span><span class="kw">do.call</span>(<span class="dt">what =</span> rbind, <span class="dt">args =</span> df.statements<span class="op">$</span>liabilities)
+
+df.assets.liabilities &lt;-<span class="st"> </span><span class="kw">rbind</span>(df.assets, df.liabilities)</code></pre></div>
+<p>As an example, let’s use the resulting dataframe for calculating and analyzing a simple liquidity index of a company, the total of current (liquid) assets (<em>Ativo circulante</em>) divided by the total of current short term liabilities (<em>Passivo Circulante</em>), over time.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dplyr)</code></pre></div>
+<pre><code>## 
+## Attaching package: 'dplyr'</code></pre>
+<pre><code>## The following objects are masked from 'package:stats':
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">my.tab &lt;-<span class="st"> </span>df.assets.liabilities <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">group_by</span>(company.name, ref.date) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">summarise</span>(<span class="dt">Liq.Index =</span> acc.value[acc.number <span class="op">==</span><span class="st"> '1.01'</span>]<span class="op">/</span><span class="st"> </span>acc.value[acc.number <span class="op">==</span><span class="st"> '2.01'</span>])
+
+my.tab</code></pre></div>
+<pre><code>## # A tibble: 12 x 3
+## # Groups:   company.name [?]
+##                   company.name   ref.date Liq.Index
+##                          &lt;chr&gt;     &lt;date&gt;     &lt;dbl&gt;
+##  1                BANESTES S/A 2005-03-31 0.7985816
+##  2                BANESTES S/A 2005-06-30 0.8393188
+##  3                BANESTES S/A 2005-09-30 0.9151590
+##  4 CIA. IGUAÇU DE CAFÉ SOLÚVEL 2005-03-31 2.3459918
+##  5 CIA. IGUAÇU DE CAFÉ SOLÚVEL 2005-06-30 2.7291873
+##  6 CIA. IGUAÇU DE CAFÉ SOLÚVEL 2005-09-30 2.1644541
+##  7                     MUNDIAL 2005-03-31 0.7903105
+##  8                     MUNDIAL 2005-06-30 0.8555824
+##  9                     MUNDIAL 2005-09-30 0.9052814
+## 10   TELEMAR PARTICIPAÇÔES S.A 2005-03-31 1.5650393
+## 11   TELEMAR PARTICIPAÇÔES S.A 2005-06-30 0.9419386
+## 12   TELEMAR PARTICIPAÇÔES S.A 2005-09-30 1.3275712</code></pre>
+<p>Now we can visualize the information using <code>ggplot2</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ggplot2)
+
+p &lt;-<span class="st"> </span><span class="kw">ggplot</span>(my.tab, <span class="kw">aes</span>(<span class="dt">x =</span> ref.date, <span class="dt">y =</span> Liq.Index, <span class="dt">fill =</span> company.name)) <span class="op">+</span>
+<span class="st">            </span><span class="kw">geom_col</span>(<span class="dt">position =</span> <span class="st">'dodge'</span> )
+<span class="kw">print</span>(p)</code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>As we can see, CIA IGUACU is the company with highest liquitidy, being able to pay its short term debt with the current assets in all quarters. Clearly the data is rich enough for us to try any hypothesis we desire.</p>
+</div>
+<div id="exporting-financial-data" class="section level2">
+<h2>Exporting financial data</h2>
+<p>The package includes function <code>gdfpd.export.DFP.data</code> for exporting the financial data to an Excel file. Users can choose between the long and wide format. See next:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">my.basename &lt;-<span class="st"> 'MyExcelData'</span>
+my.format &lt;-<span class="st"> 'xlsx'</span> <span class="co"># only supported so far</span>
+<span class="kw">gdfpd.export.DFP.data</span>(<span class="dt">data.in =</span> df.statements, 
+                      <span class="dt">base.file.name =</span> my.basename,
+                      <span class="dt">type.export =</span> my.format,
+                      <span class="dt">format.data =</span> <span class="st">'long'</span>)</code></pre></div>
+<pre><code>## File  MyExcelData.xlsx  already exists. Deleting it..
+## Copying long data for BANESTES S/A
+## Copying long data for CIA. IGUAÇU DE CAFÉ SOLÚVEL
+## Copying long data for MUNDIAL
+## Copying long data for TELEMAR PARTICIPAÇÔES S.A
+## Export sucessful</code></pre>
+<p>The resulting Excel file contains all data available in <code>df.statements</code>.</p>
+</div>
+</div>
 
 
 
