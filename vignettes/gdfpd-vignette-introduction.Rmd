@@ -11,7 +11,7 @@ vignette: >
 
 Financial statements of companies traded at Bovespa, the Brazilian exchange, are available in [Bovespa website](http://www.bmfbovespa.com.br/). Acessing the statements within the website is straighforward. Using the data for large scale research, however, is painful. Quarterly statements must be downloaded individually and latter aggregated. Changes in format can make this process painful.
 
-Package `GetDFPData` provides a R interface to all financial statements available in the website. The code works by reading a github file that contains all links in the website. Users can select companies and time periods to download the data. The resulting object is a `tibble` with all financial statements. 
+Package `GetDFPData` provides a R interface to all financial statements available in the website. The code works by reading a github file that contains all links in the website. Users can select companies and time periods to download the data. The resulting object is a `tibble` with all financial statements.  
 
 # Installation
 
