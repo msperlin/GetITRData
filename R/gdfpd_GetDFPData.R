@@ -51,6 +51,8 @@ gdfpd.GetDFPData <- function(name.companies,
     stop('Length of type.info does not match the length of name.companies')
   }
 
+  if (!dir.exists(folder.out)) dir.create(folder.out)
+
   # check internet
   if (!curl::has_internet()) {
     stop('You need an internet connection to download files from Bovespa.')
@@ -151,9 +153,12 @@ gdfpd.GetDFPData <- function(name.companies,
 
       dl.link <- temp.df2$dl.link
 
+      # fix file names for latin characters
+      my.filename <- iconv(temp.df2$name.company, to = 'ASCII//TRANSLIT')
+      my.filename <- stringr::str_replace_all(my.filename, stringr::fixed('?'), '_')
 
       temp.file = file.path(folder.out, paste0(temp.df2$id.company, '_',
-                                               stringr::str_sub(temp.df2$name.company,1,4), '_',
+                                               stringr::str_sub(my.filename,1,4), '_',
                                                i.date, '.zip') )
 
 

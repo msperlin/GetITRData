@@ -55,14 +55,14 @@ gdfpd.read.zip.file <- function(my.zip.file, folder.to.unzip = tempdir(), id.typ
 gdfpd.read.zip.file.type.1 <- function(my.zip.file, folder.to.unzip = tempdir()) {
 
   my.basename <- tools::file_path_sans_ext(basename(my.zip.file))
-  my.basename <- iconv(my.basename, to = 'ASCII//TRANSLIT')
-  rnd.folder.name <- paste0(folder.to.unzip,'/',paste0('DIR-',my.basename))
+  rnd.folder.name <- file.path(folder.to.unzip, paste0('DIR-',my.basename))
 
   if (!dir.exists(rnd.folder.name)) dir.create(rnd.folder.name)
 
   utils::unzip(my.zip.file, exdir = rnd.folder.name)
-  company.reg.file <- paste0(rnd.folder.name,'/FormularioCadastral.xml')
-  company.reg.file <- paste0(rnd.folder.name,'/FormularioDemonstracaoFinanceiraITR.xml')
+
+  #company.reg.file <- paste0(rnd.folder.name,'/FormularioCadastral.xml')
+  company.reg.file <- file.path(rnd.folder.name,'FormularioDemonstracaoFinanceiraITR.xml')
 
   xml_data <- XML::xmlToList(XML::xmlParse(company.reg.file))
 
@@ -76,10 +76,10 @@ gdfpd.read.zip.file.type.1 <- function(my.zip.file, folder.to.unzip = tempdir())
 
   #cat('\nReading', my.zip.file, '-', company.name, '|', as.character(date.docs))
 
-  zipped.file <- paste0(rnd.folder.name, '/',list.files(rnd.folder.name, pattern = '*.itr')[1])
+  zipped.file <- file.path(rnd.folder.name, list.files(rnd.folder.name, pattern = '*.itr')[1])
   utils::unzip(zipped.file, exdir = rnd.folder.name)
 
-  company.DFP.file <- paste0(rnd.folder.name,'/', 'InfoFinaDFin.xml')
+  company.DFP.file <- file.path(rnd.folder.name, 'InfoFinaDFin.xml')
 
   if (!file.exists(company.DFP.file)) {
     stop('Cant find file', company.DFP.file)
@@ -169,8 +169,7 @@ gdfpd.read.zip.file.type.1 <- function(my.zip.file, folder.to.unzip = tempdir())
 gdfpd.read.zip.file.type.2 <- function(my.zip.file, folder.to.unzip = tempdir()) {
 
   my.basename <- tools::file_path_sans_ext(basename(my.zip.file))
-  my.basename <- iconv(my.basename, to = 'ASCII//TRANSLIT')
-  rnd.folder.name <- paste0(folder.to.unzip,'/',paste0('DIR-',my.basename))
+  rnd.folder.name <- file.path(folder.to.unzip, paste0('DIR-',my.basename))
 
   if (!dir.exists(rnd.folder.name)) dir.create(rnd.folder.name)
 
@@ -178,15 +177,15 @@ gdfpd.read.zip.file.type.2 <- function(my.zip.file, folder.to.unzip = tempdir())
 
   # get individual fin statements
 
-  my.f <- paste0(rnd.folder.name,'/ITRBPAE.001')
+  #my.f <- file.path(rnd.folder.name, '/ITRBPAE.001')
   my.f <- list.files(rnd.folder.name, pattern = 'ITRBPA', full.names = T)
   df.assets <- gdfpd.read.fwf.file(my.f)
 
-  my.f <- paste0(rnd.folder.name,'/ITRBPPE.001')
+  #my.f <- paste0(rnd.folder.name,'/ITRBPPE.001')
   my.f <- list.files(rnd.folder.name, pattern = 'ITRBPP', full.names = T)
   df.liabilities <- gdfpd.read.fwf.file(my.f)
 
-  my.f <- paste0(rnd.folder.name,'/ITRDEREE.001')
+  #my.f <- paste0(rnd.folder.name,'/ITRDEREE.001')
   my.f <- list.files(rnd.folder.name, pattern = 'ITRDERE', full.names = T)
   df.income <- gdfpd.read.fwf.file(my.f)
 
@@ -197,15 +196,15 @@ gdfpd.read.zip.file.type.2 <- function(my.zip.file, folder.to.unzip = tempdir())
 
   # get consolidated fin statements
 
-  my.f <- paste0(rnd.folder.name,'/ITRCBPAE.001')
+  #my.f <- paste0(rnd.folder.name,'/ITRCBPAE.001')
   my.f <- list.files(rnd.folder.name, pattern = 'ITRCBPA', full.names = T)
   df.assets <- gdfpd.read.fwf.file(my.f)
 
-  my.f <- paste0(rnd.folder.name,'/ITRCBPPE.001')
+  #my.f <- paste0(rnd.folder.name,'/ITRCBPPE.001')
   my.f <- list.files(rnd.folder.name, pattern = 'ITRCBPP', full.names = T)
   df.liabilities <- gdfpd.read.fwf.file(my.f)
 
-  my.f <- paste0(rnd.folder.name,'/ITRCDERE.001')
+  #my.f <- paste0(rnd.folder.name,'/ITRCDERE.001')
   my.f <- list.files(rnd.folder.name, pattern = 'ITRCDER', full.names = T)
   df.income <- gdfpd.read.fwf.file(my.f)
 

@@ -1,9 +1,10 @@
 Package: GetDFPData
-Title: Reading quarterly financial statements from Bovespa DFP system
+Title: Reading Quarterly Financial Statements from Bovespa
 Version: 0.5
 Date: 2017-09-29
 Authors@R: person("Marcelo", "Perlin", email = "marceloperlin@gmail.com", role = c("aut", "cre"))
 Description: Reads quarterly financial statements including assets, liabilities, income and many more from Bovespa DFP system.
+ The package is specially designed for large scale data, keeping a tabular (long) structure for easier processing. 
 Depends:
     R (>= 3.3.0)
 Imports: stringr,XML,dplyr, readr, reshape2, tibble, xlsx, stats, curl
