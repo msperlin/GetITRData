@@ -9,21 +9,24 @@ vignette: >
   %\VignetteEncoding{UTF-8}
 ---
 
-Financial statements of companies traded at Bovespa, the Brazilian exchange, are available in [Bovespa website](http://www.bmfbovespa.com.br/). Acessing the statements within the website is straighforward. Using the data for large scale research, however, is painful. Quarterly statements must be downloaded individually and latter aggregated. Changes in format can make this process painful.
+Financial statements of companies traded at B3 (formerly Bovespa), the Brazilian stock exchange, are available in its [website](http://www.bmfbovespa.com.br/). Acessing the data for a single company is straighforward. However, gathering and organizing the data for large scale research, with many companies and quarters, is painful. Quarterly statements must be downloaded individually and latter aggregated. Changes in the accounting format thoughout time can make this process very painful.
 
-Package `GetDFPData` provides a R interface to all financial statements available in the website. The code works by reading a github file that contains all links in the website. Users can select companies and time periods to download the data. The resulting object is a `tibble` with all financial statements.  
+Package `GetDFPData` provides a R interface to all financial statements available in the website. It not only downloads the data but also organizes it in a tabular format. Users can simply select companies and time periods to download all available data. Several information about companies, such as sector and available quarters are also at reach. The main purpose of the package is to make it easy to access quarterly financial statements in large scale research, facilitating the reproducibility of such studies.
 
 # Installation
 
 ```{r, eval=FALSE}
-#install.packages('GetDFPData') # not in CRAN yet
+# Release version in CRAN
+install.packages('GetDFPData') # not in CRAN yet
+
+# Development version in Github
 devtools::install_github('msperlin/GetDFPData')
 ```
 
 
 # How to use `GetDFPData`
 
-The starting point of `GetDFPData` is function `gdfpd.search.company`, which will search for a partial match in the companies names. As an example, let's find the _official_ name of Petrobras, one of the largest companies in Brazil:
+The starting point of `GetDFPData` is function `gdfpd.search.company`. Given a string (text), it will search for a partial matches in companies names. As an example, let's find the _official_ name of Petrobras, one of the largest companies in Brazil:
 
 ```{r}
 library(GetDFPData)
@@ -32,7 +35,7 @@ gdfpd.search.company('petrobras')
 
 ```
 
-We've found it. We have available data from 1998 to 2017. Notice that the situation of the company (active or cancelled) is also presented. This helps verifying the data that can be found in Bovespa.
+Its official name in Bovespa records is PETROBRAS. Data for quarterly statements is available from 1998 to 2017. Notice that the situation of the company (active or cancelled) is also presented. This helps verifying the availablility of data.
 
 The content of all available quarterly statements can be acessed with function `gdfpd.get.info.companies`. It will read and parse a .csv file from my [github repository](https://github.com/msperlin/GetDFPData_auxiliary). This will be periodically updated for new quarterly statements. Let's try it out:
 
@@ -42,17 +45,17 @@ df.info <- gdfpd.get.info.companies()
 str(df.info)
 ```
 
-This file includes several information that are gathred from Bovespa: names of companies, sectors, dates and ids of quarterly statements and, most importantly, the links to download the files. The resulting dataframe can be used to filter and gather information for large scale research such as downloading data for a specific sector.
+This file includes several information that are gathred from Bovespa: names of companies, sectors, dates and ids of quarterly statements and, most importantly, the links to download the files. The resulting dataframe can be used to filter and gather information for large scale research such as downloading financial data for a specific sector.
+
 
 ## Downloading financial information for ONE company
 
-Downloading the financial data is easy, all you need is the names of companies and the desired starting and ending dates. Let's try it for PETROBRAS:
+All you need to download financial data with `GetDFPData` are the official names of companies, which can be found with `gdfpd.search.company`, the desired starting and ending dates and the type of financial information (individual or consolidated). Let's try it for PETROBRAS:
 
 ```{r}
 name.companies <- 'PETROBRAS'
-#name.companies <- 'PETROBRAS'
-first.date <- '1900-01-01'
-last.date  <- '2010-01-01'
+first.date <- '2005-01-01'
+last.date  <- '2006-01-01'
 type.statements <- 'individual'
 
 df.statements <- gdfpd.GetDFPData(name.companies = name.companies, 
@@ -61,13 +64,13 @@ df.statements <- gdfpd.GetDFPData(name.companies = name.companies,
                                   type.info = type.statements)
 ```
 
-The resulting object is a `tibble`, a data.frame type of object with tabular structure that allows for lists as items in a column. Let's have a look:
+The resulting object is a `tibble`, a data.frame type of object that allows for list columns. Let's have a look:
 
 ```{r}
 str(df.statements)
 ```
 
-We only have one row since we only asked for data for one company. All financial statements for the different quarters are available within `df.statements`. For example the income statements for all desired quarters of PETROBRAS are:
+Object `df.statements` only has one row since we only asked for data of one company. The number of rows increases with the number of companies. All financial statements for the different quarters are available within `df.statements`. For example, the income statements for all desired quarters of PETROBRAS are:
 
 ```{r}
 df.income.long <- df.statements$income[[1]]
@@ -75,7 +78,7 @@ df.income.long <- df.statements$income[[1]]
 str(df.income.long)
 ```
 
-The resulting dataframe is in the long format, ready for processing. If you need the wide format, with columns as quarters, you can use function `gdfpd.convert.to.wide`:
+The resulting dataframe is in the long format, ready for processing. In the long format, financial statements of different quarters are stacked. In the wide format, we have the quarters as dates. If you want the wide format, which we believe is most common in financial analysis, you can use function `gdfpd.convert.to.wide`. See an example next:
 
 ```{r}
 df.income.wide <- gdfpd.convert.to.wide(df.income.long)
@@ -88,7 +91,7 @@ knitr::kable(df.income.wide )
 If you are doing serious research, it is likely that you need financial statements for more than one company.  Package `GetDFPData` is specially designed for handling large scale download of data. Let's build a case with 5 randomly selected companies:
 
 ```{r}
-set.seed(10)
+set.seed(5)
 my.companies <- sample(unique(df.info$name.company), 5)
 
 first.date <- '2005-01-01'
@@ -107,34 +110,42 @@ And now we can check the resulting `tibble`:
 head(df.statements )
 ```
 
-Every row of `df.statements` will provide information for one company. Metadata about the corresponding dataframes such as min/max date is available in the first columns. Keeping a tabular structure facilitates the organization and future processing of all financial data. We can use tibble `df.statements` for creating other dataframes in the long format containing data for all companies. See next:
+Every row of `df.statements` will provide information for one company. Metadata about the corresponding dataframes such as min/max date is available in the first columns. Keeping a tabular structure facilitates the organization and future processing of all financial data. We can use tibble `df.statements` for creating other dataframes in the long format containing data for all companies. See next, where we create dataframes with financial data for all companies:
 
 ```{r}
 df.assets <- do.call(what = rbind, args = df.statements$assets)
+df.liabilities <- do.call(what = rbind, args = df.statements$liabilities)
 
-str(df.assets)
+df.assets.liabilities <- rbind(df.assets, df.liabilities)
 ```
 
-As an example, let's use it for plotting the ammount of cash (account 	
-1.01 - Disponibilidades) that each company has relative to its total assets, over time:
+As an example, let's use the resulting dataframe for creating a simple liquidity index of a company, the total of current (liquid) assets (_Ativo circulante_) divided by the total of current short term liabilities (_Passivo Circulante_), over time.
+
+```{r}
+library(dplyr)
+
+my.tab <- df.assets.liabilities %>%
+    group_by(company.name, ref.date) %>%
+    summarise(Liq.Index = acc.value[acc.number == '1.01']/ acc.value[acc.number == '2.01'])
+
+my.tab
+```
+
+Now we can visualize the data using `ggplot2`:
 
 ```{r}
 library(ggplot2)
-library(dplyr)
 
-my.tab <- df.assets %>%
-    group_by(company.name, ref.date) %>%
-    summarise(CASH_by_TA = acc.value[acc.number == '1.01']/ acc.value[acc.number == '1'] )
-
-p <- ggplot(my.tab, aes(x = ref.date, y = CASH_by_TA, fill = company.name)) +
+p <- ggplot(my.tab, aes(x = ref.date, y = Liq.Index, fill = company.name)) +
             geom_col(position = 'dodge' )
 print(p)
 ```
+As we can see, CIA IGUACU is the company with highest liquitidy, being able to pay its short term debt with the current assets in all quarters. 
 
 
 ## Exporting financial data
 
-The package includes function `gdfpd.export.DFP.data` for exporting the financial data to an Excel file. Users can choose between the long and wide format. See next:
+The package includes function `gdfpd.export.DFP.data` for exporting the financial data to an Excel file. Users can choose between the long and wide format.  See next:
 
 ```{r}
 my.basename <- 'MyExcelData'
@@ -144,4 +155,4 @@ gdfpd.export.DFP.data(data.in = df.statements,
                       type.export = my.format,
                       format.data = 'long')
 ```
-
+The resulting Excel file contains all data available in `df.statements`.
