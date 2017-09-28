@@ -35,24 +35,24 @@ gitrd.read.zip.file <- function(my.zip.file, folder.to.unzip = tempdir(), id.typ
 
   my.basename <- tools::file_path_sans_ext(basename(my.zip.file))
   rnd.folder.name <- file.path(folder.to.unzip, paste0('DIR-',my.basename))
-  
+
   if (!dir.exists(rnd.folder.name)) dir.create(rnd.folder.name)
-  
+
   utils::unzip(my.zip.file, exdir = rnd.folder.name, junkpaths = TRUE)
-  
+
   # list files and check it
   n.files <- list.files(rnd.folder.name)
-  
+
   if (length(n.files) == 0) {
     #browser()
-    
+
     file.remove(my.zip.file)
     stop(paste0('Zipped file contains 0 files. ',
                 'This could be a problem with the downloaded file. ',
                 'Try running the code again as the corrupted zip file was deleted and will be downloaded again.',
                 '\n\nIf it persists, simply remove the time period with problem.') )
   }
-  
+
   if (id.type == 'after 2011') {
     my.l <- gitrd.read.zip.file.type.1(rnd.folder.name, folder.to.unzip =folder.to.unzip)
   }
@@ -67,6 +67,7 @@ gitrd.read.zip.file <- function(my.zip.file, folder.to.unzip = tempdir(), id.typ
 #' Reads zip file post 2011 (internal)
 #'
 #' @inheritParams gitrd.read.zip.file
+#' @param rnd.folder.name Folder where unzipped files are available
 #'
 #' @return A list with financial statements
 #'
@@ -74,7 +75,7 @@ gitrd.read.zip.file <- function(my.zip.file, folder.to.unzip = tempdir(), id.typ
 #' # no example
 gitrd.read.zip.file.type.1 <- function(rnd.folder.name, folder.to.unzip = tempdir()) {
 
-  
+
 
   #company.reg.file <- paste0(rnd.folder.name,'/FormularioCadastral.xml')
   company.reg.file <- file.path(rnd.folder.name,'FormularioDemonstracaoFinanceiraITR.xml')
@@ -145,7 +146,7 @@ gitrd.read.zip.file.type.1 <- function(rnd.folder.name, folder.to.unzip = tempdi
   df.liabilities <- stats::na.omit(ind.df[stringr::str_sub(ind.df$acc.number,1,1) == '2', ])
   df.income    <- stats::na.omit(ind.df[stringr::str_sub(ind.df$acc.number,1,1) == '3', ])
   df.cashflow    <- stats::na.omit(ind.df[stringr::str_sub(ind.df$acc.number,1,1) == '6', ])
-  
+
   l.individual.dfs <- list(df.assets = df.assets,
                            df.liabilities = df.liabilities,
                            df.income = df.income,
@@ -179,6 +180,7 @@ gitrd.read.zip.file.type.1 <- function(rnd.folder.name, folder.to.unzip = tempdi
 #' Reads zip file pre 2011 (internal)
 #'
 #' @inheritParams gitrd.read.zip.file
+#' @param rnd.folder.name Folder where unzipped files are available
 #'
 #' @return A list with financial statements
 #'
@@ -201,7 +203,7 @@ gitrd.read.zip.file.type.2 <- function(rnd.folder.name, folder.to.unzip = tempdi
   df.income <- gitrd.read.fwf.file(my.f)
 
   my.f <- list.files(rnd.folder.name, pattern = 'ITRDFCE', full.names = T)
-  
+
   if (length(my.f) == 0) {
     df.cashflow <- data.frame(acc.desc  = NA,
                               acc.value = NA,
@@ -209,7 +211,7 @@ gitrd.read.zip.file.type.2 <- function(rnd.folder.name, folder.to.unzip = tempdi
   }else {
     df.cashflow <- gitrd.read.fwf.file(my.f)
   }
-  
+
   l.individual.dfs <- list(df.assets = df.assets,
                            df.liabilities = df.liabilities,
                            df.income = df.income,
@@ -231,8 +233,8 @@ gitrd.read.zip.file.type.2 <- function(rnd.folder.name, folder.to.unzip = tempdi
   df.income <- gitrd.read.fwf.file(my.f)
 
   my.f <- list.files(rnd.folder.name, pattern = 'ITRCDFCE', full.names = T)
-  
-  
+
+
   if (length(my.f) == 0) {
     df.cashflow <- data.frame(acc.desc  = NA,
                               acc.value = NA,
@@ -240,7 +242,7 @@ gitrd.read.zip.file.type.2 <- function(rnd.folder.name, folder.to.unzip = tempdi
   } else {
     df.cashflow <- gitrd.read.fwf.file(my.f)
   }
-  
+
   l.consolidated.dfs<- list(df.assets = df.assets,
                            df.liabilities = df.liabilities,
                            df.income = df.income,

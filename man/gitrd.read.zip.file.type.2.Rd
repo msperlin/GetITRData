@@ -4,10 +4,10 @@
 \alias{gitrd.read.zip.file.type.2}
 \title{Reads zip file pre 2011 (internal)}
 \usage{
-gitrd.read.zip.file.type.2(my.zip.file, folder.to.unzip = tempdir())
+gitrd.read.zip.file.type.2(rnd.folder.name, folder.to.unzip = tempdir())
 }
 \arguments{
-\item{my.zip.file}{Full path to zip file}
+\item{rnd.folder.name}{Folder where unzipped files are available}
 
 \item{folder.to.unzip}{Folder to unzip files (default = tempdir())}
 }
