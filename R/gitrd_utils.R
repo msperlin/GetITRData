@@ -95,6 +95,11 @@ gdfpd.fix.dataframes <- function(df.in) {
   df.in$ref.date <- as.Date(df.in$ref.date)
   max.date <- max(df.in$ref.date)
 
+  # fix names for cashflow statements (from 4.01 to 6.01)
+  if (any(stringr::str_sub(df.in$acc.number, 1, 1) == '4') ) {
+    substr(df.in$acc.number, 1, 1) <- "6"
+  }
+  
   # get reference table for substitution
   ref.table <- unique(df.in[df.in$ref.date == max.date, c('acc.number', 'acc.desc')])
   ref.table <- unique(df.in[ , c('acc.number', 'acc.desc', 'ref.date')])

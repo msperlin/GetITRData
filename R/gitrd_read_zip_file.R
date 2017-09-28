@@ -129,10 +129,12 @@ gdfpd.read.zip.file.type.1 <- function(my.zip.file, folder.to.unzip = tempdir())
   df.assets <- stats::na.omit(ind.df[stringr::str_sub(ind.df$acc.number,1,1) == '1', ])
   df.liabilities <- stats::na.omit(ind.df[stringr::str_sub(ind.df$acc.number,1,1) == '2', ])
   df.income    <- stats::na.omit(ind.df[stringr::str_sub(ind.df$acc.number,1,1) == '3', ])
-
+  df.cashflow    <- stats::na.omit(ind.df[stringr::str_sub(ind.df$acc.number,1,1) == '6', ])
+  
   l.individual.dfs <- list(df.assets = df.assets,
                            df.liabilities = df.liabilities,
-                           df.income = df.income)
+                           df.income = df.income,
+                           df.cashflow = df.cashflow)
 
   # get consolidated dfs
   type.df <- 'consolidated'
@@ -146,11 +148,12 @@ gdfpd.read.zip.file.type.1 <- function(my.zip.file, folder.to.unzip = tempdir())
   df.assets <- stats::na.omit(consolidated.df[stringr::str_sub(consolidated.df$acc.number,1,1) == '1', ])
   df.liabilities <- stats::na.omit(consolidated.df[stringr::str_sub(consolidated.df$acc.number,1,1) == '2', ])
   df.income    <- stats::na.omit(consolidated.df[stringr::str_sub(consolidated.df$acc.number,1,1) == '3', ])
-
+  df.cashflow    <- stats::na.omit(consolidated.df[stringr::str_sub(consolidated.df$acc.number,1,1) == '6', ])
 
   l.consolidated.dfs <- list(df.assets = df.assets,
                              df.liabilities = df.liabilities,
-                             df.income = df.income)
+                             df.income = df.income,
+                             df.cashflow = df.cashflow)
 
   my.l <- list(ind.dfs = l.individual.dfs,
                cons.dfs = l.consolidated.dfs)
@@ -189,9 +192,20 @@ gdfpd.read.zip.file.type.2 <- function(my.zip.file, folder.to.unzip = tempdir())
   my.f <- list.files(rnd.folder.name, pattern = 'ITRDERE', full.names = T)
   df.income <- gdfpd.read.fwf.file(my.f)
 
+  my.f <- list.files(rnd.folder.name, pattern = 'ITRDFCE', full.names = T)
+  
+  if (length(my.f) == 0) {
+    df.cashflow <- data.frame(acc.desc  = NA,
+                              acc.value = NA,
+                              acc.number = NA)
+  }else {
+    df.cashflow <- gdfpd.read.fwf.file(my.f)
+  }
+  
   l.individual.dfs <- list(df.assets = df.assets,
                            df.liabilities = df.liabilities,
-                           df.income = df.income)
+                           df.income = df.income,
+                           df.cashflow = df.cashflow)
 
 
   # get consolidated fin statements
@@ -208,9 +222,21 @@ gdfpd.read.zip.file.type.2 <- function(my.zip.file, folder.to.unzip = tempdir())
   my.f <- list.files(rnd.folder.name, pattern = 'ITRCDER', full.names = T)
   df.income <- gdfpd.read.fwf.file(my.f)
 
+  my.f <- list.files(rnd.folder.name, pattern = 'ITRCDFCE', full.names = T)
+  
+  
+  if (length(my.f) == 0) {
+    df.cashflow <- data.frame(acc.desc  = NA,
+                              acc.value = NA,
+                              acc.number = NA)
+  } else {
+    df.cashflow <- gdfpd.read.fwf.file(my.f)
+  }
+  
   l.consolidated.dfs<- list(df.assets = df.assets,
                            df.liabilities = df.liabilities,
-                           df.income = df.income)
+                           df.income = df.income,
+                           df.cashflow = df.cashflow)
   # get basic info
 
   my.l <- list(ind.dfs = l.individual.dfs,

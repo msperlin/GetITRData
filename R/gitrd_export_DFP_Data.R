@@ -14,14 +14,14 @@
 #' first.date <- '2005-01-01'
 #' last.date <-  '2006-01-01'
 #'
-#' df.statements <- gdfpd.GetDFPData(name.companies = name.companies,
+#' df.statements <- gitrd.GetDFPData(name.companies = name.companies,
 #'                                   first.date = first.date,
 #'                                   last.date = last.date)
 #'
-#' gdfpd.export.DFP.data(df.statements, format.data = 'wide')
+#' gitrd.export.DFP.data(df.statements, format.data = 'wide')
 #' }
-gdfpd.export.DFP.data <- function(data.in,
-                                  base.file.name = paste0('GetDFPData_Export_',Sys.Date()),
+gitrd.export.DFP.data <- function(data.in,
+                                  base.file.name = paste0('GetITRData_Export_',Sys.Date()),
                                   type.export = 'xlsx',
                                   format.data = 'wide') {
 
@@ -55,7 +55,7 @@ gdfpd.export.DFP.data <- function(data.in,
       out.asset = data.frame(col = 'NO DATA')
     } else {
       if (format.data == 'wide') {
-        out.asset = gdfpd.convert.to.wide(temp.df$assets[[1]])
+        out.asset = gitrd.convert.to.wide(temp.df$assets[[1]])
       } else {
         out.asset = temp.df$assets[[1]]
       }
@@ -66,7 +66,7 @@ gdfpd.export.DFP.data <- function(data.in,
       out.liability = data.frame(col = 'NO DATA')
     } else {
       if (format.data == 'wide') {
-        out.liability = gdfpd.convert.to.wide(temp.df$liabilities[[1]])
+        out.liability = gitrd.convert.to.wide(temp.df$liabilities[[1]])
       } else {
         out.liability = temp.df$liabilities[[1]]
       }
@@ -77,7 +77,7 @@ gdfpd.export.DFP.data <- function(data.in,
       out.income = data.frame(col = 'NO DATA')
     } else {
       if (format.data == 'wide') {
-        out.income = gdfpd.convert.to.wide(temp.df$income[[1]])
+        out.income = gitrd.convert.to.wide(temp.df$income[[1]])
       } else {
         out.income = temp.df$income[[1]]
       }

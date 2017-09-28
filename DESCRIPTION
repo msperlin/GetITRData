@@ -1,16 +1,16 @@
 Package: GetDFPData
-Title: Reading Quarterly Financial Statements from Bovespa
+Title: Reading Quarterly Financial Reports from Bovespa ITR System
 Version: 0.5
 Date: 2017-09-29
 Authors@R: person("Marcelo", "Perlin", email = "marceloperlin@gmail.com", role = c("aut", "cre"))
-Description: Reads quarterly financial statements including assets, liabilities, income and many more from Bovespa DFP system.
- The package is specially designed for large scale data, keeping a tabular (long) structure for easier processing. 
+Description: Reads quarterly financial reports including assets, liabilities, income and cash flow statements from Bovespa ITR system.
+ The package is specially designed for large scale data importation, keeping a tabular (long) structure for easier processing. 
 Depends:
     R (>= 3.3.0)
 Imports: stringr,XML,dplyr, readr, reshape2, tibble, xlsx, stats, curl
 License: GPL-2
-BugReports: https://github.com/msperlin/GetDFPData/issues
-URL: https://github.com/msperlin/GetDFPData/
+BugReports: https://github.com/msperlin/GetITRData/issues
+URL: https://github.com/msperlin/GetITRData/
 LazyData: true
 RoxygenNote: 6.0.1
 Suggests: knitr,
