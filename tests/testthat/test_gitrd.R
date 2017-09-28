@@ -1,5 +1,5 @@
 library(testthat)
-library(GetDFPData)
+library(GetITRData)
 
 #test_that(desc = 'Test of download function',{
 #          expect_equal(1, 1) } )

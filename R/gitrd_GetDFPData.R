@@ -2,14 +2,14 @@
 #'
 #' Financial statements are downloaded from Bovespa for the user selected combination of companies and time period. The downloaded
 #' zip file is read by a custom function, which outputs several information that are organized and structured by this function.
-#' The easist way to get started is to look for names using function gdfpd.search.company('nametolookfor') to search for a company name.
-#' Alternatively, you can use function gdfpd.get.info.companies to import a dataframe with information for all available companies and time periods.
+#' The easist way to get started is looking for the official name of traded companies using function gitrd.search.company('nametolookfor').
+#' Alternatively, you can use function gitrd.get.info.companies to import a dataframe with information for all available companies and time periods.
 #'
-#' @param name.companies Names of companies to get financial information (e.g. 'PETROBRAS'). Names of companies can be found using function gdfpd.get.info.companies()
+#' @param name.companies Official names of companies to get financial reports (e.g. 'PETROBRAS'). Names of companies can be found using function gitrd.get.info.companies()
 #' @param first.date First date (YYYY-MM-DD) to get data (e.g. first.date = '2010-01-01')
 #' @param last.date Last date (YYYY-MM-DD) to get data (e.g. last.date = '2017-01-01')
 #' @param type.info Type of financial statements, 'individual' (default) or 'consolidated'. Argument can be a single value or a vector with the same
-#' size as name.companies. The individual type only includes financial statements from the company itself, while consolidated statements adds information
+#' length as name.companies. The individual type only includes financial statements from the company itself, while consolidated statements adds information
 #' about controlled companies
 #' @param folder.out Folder where to download the zip files (defauld = tempdir())
 #' @param be.quiet Should the function output information about progress? TRUE (default) or FALSE
@@ -25,11 +25,11 @@
 #' last.date <-  '2006-01-01'
 #' last.date <- Sys.Date()
 #'
-#' df.statements <- gdfpd.GetDFPData(name.companies = name.companies,
+#' df.statements <- gitrd.GetITRData(name.companies = name.companies,
 #'                                   first.date = first.date,
 #'                                   last.date = last.date)
 #'  }
-gdfpd.GetDFPData <- function(name.companies,
+gitrd.GetITRData <- function(name.companies,
                              first.date = Sys.Date()-6*30,
                              last.date = Sys.Date(),
                              type.info = 'individual',
@@ -59,13 +59,13 @@ gdfpd.GetDFPData <- function(name.companies,
   }
   
   # get data from github
-  df.info <- gdfpd.get.info.companies()
+  df.info <- gitrd.get.info.companies()
   unique.names <- unique(df.info$name.company)
   
   idx <- !(name.companies %in% unique.names)
   if (any( idx)) {
     stop(paste0('Name of companies: \n\n ', paste0(name.companies[idx], collapse = '\n'), '\n\n',
-                'not found in registry. Use df.info <- gdfpd.get.info.companies() to find the names of all available companies.'))
+                'not found in registry. Use df.info <- gitrd.get.info.companies() to find the names of all available companies.'))
   }
   
   # check dates
@@ -175,14 +175,13 @@ gdfpd.GetDFPData <- function(name.companies,
         utils::download.file(url = dl.link,
                              destfile = temp.file,
                              quiet = T,
-                             mode = 'wb',
-                             method = 'internal')
+                             mode = 'wb')
       }
       
       cat(' | Reading file')
       
       suppressWarnings({ 
-        l.out <- gdfpd.read.zip.file(my.zip.file = temp.file, folder.to.unzip = tempdir(),
+        l.out <- gitrd.read.zip.file(my.zip.file = temp.file, folder.to.unzip = tempdir(),
                                      id.type = temp.df2$id.type )
       })
       
@@ -212,10 +211,10 @@ gdfpd.GetDFPData <- function(name.companies,
     }
     
     # clean up dataframes before saving
-    df.assets <-      gdfpd.fix.dataframes(stats::na.omit(df.assets))
-    df.liabilities <- gdfpd.fix.dataframes(stats::na.omit(df.liabilities))
-    df.income <-      gdfpd.fix.dataframes(stats::na.omit(df.income))
-    df.cashflow <-    gdfpd.fix.dataframes(stats::na.omit(df.cashflow))
+    df.assets <-      gitrd.fix.dataframes(stats::na.omit(df.assets))
+    df.liabilities <- gitrd.fix.dataframes(stats::na.omit(df.liabilities))
+    df.income <-      gitrd.fix.dataframes(stats::na.omit(df.income))
+    df.cashflow <-    gitrd.fix.dataframes(stats::na.omit(df.cashflow))
     
     tibble.company <- tibble::tibble(company.name = i.company,
                                      company.code = temp.df$id.company[1],

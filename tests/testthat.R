@@ -1,4 +1,4 @@
 library(testthat)
-library(GetDFPData)
+library(GetITRData)
 
-test_check("GetDFPData")
+test_check("GetITRData")

@@ -9,15 +9,15 @@
 #' @examples
 #'
 #' \dontrun{ # make it fast to run in CRAN
-#' df.info <- gdfpd.get.info.companies()
+#' df.info <- gitrd.get.info.companies()
 #' str(df.info)
 #' }
-gdfpd.get.info.companies <- function() {
+gitrd.get.info.companies <- function() {
 
   # get data from github
 
   cat('\nReading info file from github')
-  link.github <- 'https://raw.githubusercontent.com/msperlin/GetDFPData_auxiliary/master/InfoBovespaCompanies.csv'
+  link.github <- 'https://raw.githubusercontent.com/msperlin/GetitrData_auxiliary/master/InfoBovespaCompanies.csv'
 
   my.cols <- readr::cols(
     id.company = readr::col_integer(),
@@ -45,7 +45,7 @@ gdfpd.get.info.companies <- function() {
   cat('\nFound', nrow(df.info), 'lines for', length(unique(df.info$name.company)), 'companies ',
       '[Actives = ', n.actives, ' Inactives = ', n.inactives, ']')
 
-  my.last.update <- readLines('https://raw.githubusercontent.com/msperlin/GetDFPData_auxiliary/master/LastUpdate.txt')
+  my.last.update <- readLines('https://raw.githubusercontent.com/msperlin/GetitrData_auxiliary/master/LastUpdate.txt')
   cat('\nLast file update: ', my.last.update)
 
   return(df.info)

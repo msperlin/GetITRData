@@ -1,3 +1,3 @@
-### Version 0.5 (2017-XX-XX)
+### Version 0.5 (2017-09-29)
 
-First commit
+First version.

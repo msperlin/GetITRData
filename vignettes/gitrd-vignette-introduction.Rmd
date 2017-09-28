@@ -1,0 +1,163 @@
+---
+title: "Using GetITRData to obtain financial statements from Bovespa"
+author: "Marcelo Perlin"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Using GetITRData to obtain financial statements from Bovespa}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+  ---
+  
+  Financial statements of companies traded at B3 (formerly Bovespa), the Brazilian stock exchange, are available in its [website](http://www.bmfbovespa.com.br/). Acessing the data for a single company is straighforward. In the website one can find a simple interface for accessing this dataset. An example is given [here](https://www.rad.cvm.gov.br/ENETCONSULTA/frmGerenciaPaginaFRE.aspx?NumeroSequencialDocumento=67775&CodigoTipoInstituicao=2). However, gathering and organizing the data for a large scale research, with many companies and different time periods, is painful. Quarterly statements must be downloaded individually and latter aggregated. Changes in the accounting format thoughout time can make this process unreliable and prone to error.
+  
+  Package `GetITRData` provides a R interface to all financial statements available in the website. It not only downloads the data but also organizes it in a tabular format. Users can simply select companies and time periods to download all available data. Several information about companies, such as sector and available quarters are also at reach. The main purpose of the package is to make it easy to access quarterly financial statements in large scale research, facilitating the reproducibility of such studies.
+  
+  # Installation
+  
+  The package is available in CRAN (release version) and in Github (development version). You can install any of those with the following code:
+  
+  ```{r, eval=FALSE}
+# Release version in CRAN
+install.packages('GetITRData') # not in CRAN yet
+
+# Development version in Github
+devtools::install_github('msperlin/GetITRData')
+```
+
+
+# How to use `GetITRData`
+
+The starting point of `GetITRData` is to find the official names of companies in Bovespa. Function `gitrd.search.company` serves this purpose. Given a string (text), it will search for a partial matches in companies names. As an example, let's find the _official_ name of Petrobras, one of the largest companies in Brazil:
+
+```{r}
+library(GetITRData)
+
+gitrd.search.company('petrobras')
+
+```
+
+Its official name in Bovespa records is PETROBRAS. Data for quarterly statements is available from 1998 to 2017. Notice that the situation of the company (active or cancelled) is also presented. This helps verifying the availablility of data.
+
+The content of all available quarterly statements can be acessed with function `gitrd.get.info.companies`. It will read and parse a .csv file from my [github repository](https://github.com/msperlin/GetITRData_auxiliary). This will be periodically updated for new quarterly statements. I hope I can set it to run automatically using a cloud service. Let's try it out:
+
+```{r}
+df.info <- gitrd.get.info.companies()
+
+str(df.info)
+```
+
+This file includes several information that are gathred from Bovespa: names of companies, sectors, dates  quarterly statements and, most importantly, the links to download the files. The resulting dataframe can be used to filter and gather information for large scale research such as downloading financial data for a specific sector.
+
+
+## Downloading financial information for ONE company
+
+All you need to download financial data with `GetITRData` are the official names of companies, which can be found with `gitrd.search.company`, the desired starting and ending dates and the type of financial information (individual or consolidated). Let's try it for PETROBRAS:
+
+```{r}
+name.companies <- 'PETROBRAS'
+first.date <- '2005-01-01'
+last.date  <- '2006-01-01'
+type.statements <- 'individual'
+
+df.reports <- gitrd.GetITRData(name.companies = name.companies, 
+                               first.date = first.date,
+                               last.date = last.date,
+                               type.info = type.statements)
+```
+
+The resulting object is a `tibble`, a data.frame type of object that allows for list columns. Let's have a look in its content:
+
+```{r}
+str(df.reports)
+```
+
+Object `df.reports` only has one row since we only asked for data of one company. The number of rows increases with the number of companies, as we will soon learn with the next example. All financial statements for the different quarters are available within `df.reports`. For example, the income statements for all desired quarters of PETROBRAS are:
+
+```{r}
+df.income.long <- df.reports$income[[1]]
+
+str(df.income.long)
+```
+
+The resulting dataframe is in the long format, ready for processing. In the long format, financial statements of different quarters are stacked. In the wide format, we have the quarters as dates. If you want the wide format, which we believe is most common in financial analysis, you can use function `gitrd.convert.to.wide`. See an example next:
+
+```{r}
+df.income.wide <- gitrd.convert.to.wide(df.income.long)
+
+knitr::kable(df.income.wide )
+```
+
+
+## Downloading financial information for SEVERAL companies
+
+If you are doing serious research, it is likely that you need financial statements for more than one company.  Package `GetITRData` is specially designed for handling large scale download of data. Let's build a case with 5 randomly selected companies:
+
+```{r}
+set.seed(5)
+my.companies <- sample(unique(df.info$name.company), 5)
+
+first.date <- '2005-01-01'
+last.date  <- '2006-01-01'
+type.statements <- 'individual'
+
+df.reports <- gitrd.GetITRData(name.companies = my.companies, 
+                                  first.date = first.date,
+                                  last.date = last.date,
+                                  type.info = type.statements)
+```
+
+And now we can check the resulting `tibble`:
+
+```{r}
+head(df.reports )
+```
+
+Every row of `df.reports` will provide information for one company. Metadata about the corresponding dataframes such as min/max dates is available in the first columns. Keeping a tabular structure facilitates the organization and future processing of all financial data. We can use tibble `df.reports` for creating other dataframes in the long format containing data for all companies. See next, where we create dataframes with the assets and liabilitis of all companies:
+
+```{r}
+df.assets <- do.call(what = rbind, args = df.reports$assets)
+df.liabilities <- do.call(what = rbind, args = df.reports$liabilities)
+
+df.assets.liabilities <- rbind(df.assets, df.liabilities)
+```
+
+As an example, let's use the resulting dataframe for calculating and analyzing a simple liquidity index of a company, the total of current (liquid) assets (_Ativo circulante_) divided by the total of current short term liabilities (_Passivo Circulante_), over time.
+
+```{r}
+library(dplyr)
+
+my.tab <- df.assets.liabilities %>%
+  group_by(company.name, ref.date) %>%
+  summarise(Liq.Index = acc.value[acc.number == '1.01']/ acc.value[acc.number == '2.01'])
+
+my.tab
+```
+
+Now we can visualize the information using `ggplot2`:
+
+```{r}
+library(ggplot2)
+
+p <- ggplot(my.tab, aes(x = ref.date, y = Liq.Index, fill = company.name)) +
+  geom_col(position = 'dodge' )
+print(p)
+```
+
+As we can see, CIA IGUACU is the company with highest liquitidy, being able to pay its short term debt with the current assets in all quarters. Clearly the data is rich enough for us to try any hypothesis we desire.
+
+
+## Exporting financial data
+
+The package includes function `gitrd.export.ITR.data` for exporting the financial data to an Excel file. Users can choose between the long and wide format.  See next:
+
+```{r, eval=FALSE}
+my.basename <- 'MyExcelData'
+my.format <- 'xlsx' # only supported so far
+gitrd.export.ITR.data(data.in = df.reports, 
+                      base.file.name = my.basename,
+                      type.export = my.format,
+                      format.data = 'long')
+```
+
+The resulting Excel file contains all data available in `df.reports`.

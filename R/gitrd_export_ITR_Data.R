@@ -1,6 +1,6 @@
 #' Export tibble to an excel file
 #'
-#' @param data.in Tibble with financial information (output of gdfpd.GetDFPData)
+#' @param data.in Tibble with financial information (output of gitrd.GetITRData)
 #' @param base.file.name The basename of excel file (don't include extension)
 #' @param type.export The extension of the desired format (only 'xlsx' implemented so far)
 #' @param format.data The format of output. 'wide' (default) for a wide table and 'long' for a long table
@@ -14,13 +14,13 @@
 #' first.date <- '2005-01-01'
 #' last.date <-  '2006-01-01'
 #'
-#' df.statements <- gitrd.GetDFPData(name.companies = name.companies,
+#' df.statements <- gitrd.GetITRData(name.companies = name.companies,
 #'                                   first.date = first.date,
 #'                                   last.date = last.date)
 #'
-#' gitrd.export.DFP.data(df.statements, format.data = 'wide')
+#' gitrd.export.ITR.data(df.statements, format.data = 'wide')
 #' }
-gitrd.export.DFP.data <- function(data.in,
+gitrd.export.ITR.data <- function(data.in,
                                   base.file.name = paste0('GetITRData_Export_',Sys.Date()),
                                   type.export = 'xlsx',
                                   format.data = 'wide') {

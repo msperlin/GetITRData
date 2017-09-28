@@ -1,4 +1,4 @@
-#' Converts a dataframe from gdpfd_GetDFPData to the wide format
+#' Converts a dataframe from gdpfd_GetITRData to the wide format
 #'
 #' @param data.in Data frame with financial information
 #'
@@ -11,14 +11,14 @@
 #' name.companies <- 'PETROBRAS'
 #' first.date <- '2000-01-01'
 #' last.date <-  '2005-01-01'
-#' df.statements <- gdfpd.GetDFPData(name.companies = name.companies,
+#' df.statements <- gitrd.GetITRData(name.companies = name.companies,
 #'                                  first.date = first.date,
 #'                                  last.date = last.date)
 #'
 #' df.assets <- df.statements$assets[[1]]
-#' df.assets.wide <- gdfpd.convert.to.wide(df.assets)
+#' df.assets.wide <- gitrd.convert.to.wide(df.assets)
 #' }
-gdfpd.convert.to.wide <- function(data.in) {
+gitrd.convert.to.wide <- function(data.in) {
 
   if (!any('data.frame' %in% class(data.in))) {
     stop('input data.in does not seems to be a dataframe..')
@@ -42,11 +42,11 @@ gdfpd.convert.to.wide <- function(data.in) {
 #' @examples
 #'
 #' \dontrun{
-#' df.info <- gdfpd.search.company('GERDAU')
+#' df.info <- gitrd.search.company('GERDAU')
 #' }
-gdfpd.search.company <- function(char.to.search) {
+gitrd.search.company <- function(char.to.search) {
 
-  df.info <- gdfpd.get.info.companies()
+  df.info <- gitrd.get.info.companies()
 
   unique.names <- unique(df.info$name.company)
   char.target <- stringr::str_to_lower(unique.names)
@@ -86,7 +86,7 @@ gdfpd.search.company <- function(char.to.search) {
 #'
 #' @examples
 #'  # no example
-gdfpd.fix.dataframes <- function(df.in) {
+gitrd.fix.dataframes <- function(df.in) {
 
   # fix .00 in acc.number
   df.in$acc.number <- stringr::str_replace_all(df.in$acc.number, '.00', '')
@@ -128,7 +128,7 @@ gdfpd.fix.dataframes <- function(df.in) {
 #'
 #' @examples
 #' # no example
-gdfpd.read.fwf.file <- function(my.f) {
+gitrd.read.fwf.file <- function(my.f) {
 
   # set cols for fwf
   my.col.types <- readr::cols(
