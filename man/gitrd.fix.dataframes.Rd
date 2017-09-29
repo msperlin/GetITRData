@@ -4,10 +4,15 @@
 \alias{gitrd.fix.dataframes}
 \title{Fix dataframe for version issues (internal)}
 \usage{
-gitrd.fix.dataframes(df.in)
+gitrd.fix.dataframes(df.in, inflation.index, df.inflation)
 }
 \arguments{
 \item{df.in}{A dataframe with financial statements}
+
+\item{inflation.index}{Set which inflation index to use for finding inflation adjusted values of all reports. Possible values: 'none' (default), 'IPCA' - main brazilian inflation index and 'dollar'.
+When using 'IPCA', the base date as set as the last date found in the inflation dataset.}
+
+\item{df.inflation}{Dataframe with inflation data}
 }
 \value{
 The fixed data.frame

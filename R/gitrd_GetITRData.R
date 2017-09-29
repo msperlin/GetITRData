@@ -1,17 +1,19 @@
 #' Downloads and reads financial reports from Bovespa
 #'
-#' Financial statements are downloaded from Bovespa for the user selected combination of companies and time period. The downloaded
+#' Quarterly financial reports are downloaded from Bovespa for a combination of companies and time period. The downloaded
 #' zip file is read by a custom function, which outputs several information that are organized and structured by this function.
-#' The easist way to get started is looking for the official name of traded companies using function gitrd.search.company('nametolookfor').
+#' The easist way to get started with gitrd.GetITRData is looking for the official name of traded companies using function gitrd.search.company('nametolookfor').
 #' Alternatively, you can use function gitrd.get.info.companies to import a dataframe with information for all available companies and time periods.
 #'
 #' @param name.companies Official names of companies to get financial reports (e.g. 'PETROBRAS'). Names of companies can be found using function gitrd.get.info.companies()
-#' @param first.date First date (YYYY-MM-DD) to get data (e.g. first.date = '2010-01-01')
-#' @param last.date Last date (YYYY-MM-DD) to get data (e.g. last.date = '2017-01-01')
+#' @param first.date First date (YYYY-MM-DD) to get data. Character or Date. E.g. first.date = '2010-01-01'.
+#' @param last.date Last date (YYYY-MM-DD) to get data. Character or Date. E.g. last.date = '2017-01-01'.
 #' @param type.info Type of financial statements, 'individual' (default) or 'consolidated'. Argument can be a single value or a vector with the same
 #' length as name.companies. The individual type only includes financial statements from the company itself, while consolidated statements adds information
 #' about controlled companies
-#' @param folder.out Folder where to download the zip files (defauld = tempdir())
+#' @param inflation.index Set which inflation index to use for finding inflation adjusted values of all reports. Possible values: 'none' (default), 'IPCA' - main brazilian inflation index and 'dollar'.
+#' When using 'IPCA', the base date as set as the last date found in the inflation dataset.
+#' @param folder.out Folder where to download and manipulate the zip files. Default = tempdir()
 #' @param be.quiet Should the function output information about progress? TRUE (default) or FALSE
 #'
 #' @return A tibble (dataframe with lists) object with all gathered financial statements, with each company as a row in the tibble.
@@ -33,12 +35,12 @@ gitrd.GetITRData <- function(name.companies,
                              first.date = Sys.Date()-6*30,
                              last.date = Sys.Date(),
                              type.info = 'individual',
+                             inflation.index = 'none',
                              folder.out = tempdir(),
                              be.quiet = FALSE) {
   
   # sanity check
   possible.values <- c('individual', 'consolidated')
-  
   if ( !(any(type.info %in% possible.values)) ){
     stop('Input type.info should be "individual" or "consolidated"')
   }
@@ -52,6 +54,12 @@ gitrd.GetITRData <- function(name.companies,
   }
   
   if (!dir.exists(folder.out)) dir.create(folder.out)
+  
+  # check input inflation.index
+  possible.values <- c('none', 'IPCA', 'dollar')
+  if ( !(any(inflation.index %in% possible.values)) ) {
+    stop(paste0('Input inflation.index should be one of:\n' , paste0(possible.values, collapse = '\n') ) )
+  }  
   
   # check internet
   if (!curl::has_internet()) {
@@ -103,7 +111,28 @@ gitrd.GetITRData <- function(name.companies,
              '\nType of financial statements: ', paste0(type.info, collapse = '\t'),
              '\nFirst Date: ',first.date,
              '\nLaste Date: ',last.date,
+             '\nInflation index: ', inflation.index, 
              '\n\n') )
+
+  cat(paste0('Downloading ', inflation.index, ' data using BETS'))
+  
+  # download inflation data using BETS
+  if (inflation.index == 'IPCA') {
+    id.ipca <- '433'
+    df.inflation <- BETS::BETS.get(code = id.ipca, 
+                                   from = as.character(first.date), 
+                                   to = as.character(last.date), data.frame = T )
+  }
+  
+  if (inflation.index == 'dollar') {
+    id.ipca <- '1'
+    df.inflation <- BETS::BETS.get(code = id.ipca, 
+                                   from = as.character(first.date), 
+                                   to = as.character(last.date), data.frame = T )
+    
+  }
+  
+  cat('\tDone\n\n')
   
   # try to find company's names
   idx <- !name.companies %in% unique(df.to.process$name.company)
@@ -211,10 +240,10 @@ gitrd.GetITRData <- function(name.companies,
     }
     
     # clean up dataframes before saving
-    df.assets <-      gitrd.fix.dataframes(stats::na.omit(df.assets))
-    df.liabilities <- gitrd.fix.dataframes(stats::na.omit(df.liabilities))
-    df.income <-      gitrd.fix.dataframes(stats::na.omit(df.income))
-    df.cashflow <-    gitrd.fix.dataframes(stats::na.omit(df.cashflow))
+    df.assets <-      gitrd.fix.dataframes(stats::na.omit(df.assets), inflation.index, df.inflation)
+    df.liabilities <- gitrd.fix.dataframes(stats::na.omit(df.liabilities), inflation.index, df.inflation)
+    df.income <-      gitrd.fix.dataframes(stats::na.omit(df.income), inflation.index, df.inflation)
+    df.cashflow <-    gitrd.fix.dataframes(stats::na.omit(df.cashflow), inflation.index, df.inflation)
     
     tibble.company <- tibble::tibble(company.name = i.company,
                                      company.code = temp.df$id.company[1],

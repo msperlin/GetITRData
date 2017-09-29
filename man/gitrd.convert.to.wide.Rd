@@ -2,7 +2,7 @@
 % Please edit documentation in R/gitrd_utils.R
 \name{gitrd.convert.to.wide}
 \alias{gitrd.convert.to.wide}
-\title{Converts a dataframe from gdpfd_GetITRData to the wide format}
+\title{Converts a dataframe from gitr_GetITRData to the wide format}
 \usage{
 gitrd.convert.to.wide(data.in)
 }
@@ -13,7 +13,7 @@ gitrd.convert.to.wide(data.in)
 A dataframe in the wide format
 }
 \description{
-Converts a dataframe from gdpfd_GetITRData to the wide format
+Converts a dataframe from gitr_GetITRData to the wide format
 }
 \examples{
 

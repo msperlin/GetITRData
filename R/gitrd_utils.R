@@ -1,4 +1,4 @@
-#' Converts a dataframe from gdpfd_GetITRData to the wide format
+#' Converts a dataframe from gitr_GetITRData to the wide format
 #'
 #' @param data.in Data frame with financial information
 #'
@@ -81,12 +81,13 @@ gitrd.search.company <- function(char.to.search) {
 #' Fix dataframe for version issues (internal)
 #'
 #' @param df.in A dataframe with financial statements
-#'
+#' @inheritParams gitrd.GetITRData
+#' @param df.inflation Dataframe with inflation data 
 #' @return The fixed data.frame
 #'
 #' @examples
 #'  # no example
-gitrd.fix.dataframes <- function(df.in) {
+gitrd.fix.dataframes <- function(df.in, inflation.index, df.inflation) {
 
   # fix .00 in acc.number
   df.in$acc.number <- stringr::str_replace_all(df.in$acc.number, '.00', '')
@@ -117,6 +118,35 @@ gitrd.fix.dataframes <- function(df.in) {
   idx <- match( df.in$acc.number, names(desc.to.use))
   df.in$acc.desc <- desc.to.use[idx]
 
+  # fix inflation
+  
+  if (inflation.index == 'IPCA') {
+    
+    # get accumulated inflation index
+    df.inflation$cum <- cumprod(df.inflation$value/100 +1)
+    
+    # use base date as last available date in df.inflation
+    base.value <- df.inflation$cum[which.max(df.inflation$date)]
+    df.inflation$inflator <- df.inflation$cum/base.value
+    
+    # match time periods
+    idx <- match(format(df.in$ref.date, '%Y-%m'), format(df.inflation$date, '%Y-%m'))
+    df.in$acc.value.inflation.adjusted <- df.in$acc.value/df.inflation$inflator[idx]
+  }
+  
+  if (inflation.index == 'dollar') {
+
+    # find closest date for dollar  
+    match.neardate <- function(date.in, table.dates) {
+      idx <- which.min(abs(date.in - table.dates))
+      return(idx)
+    }
+    
+    idx <- sapply(X = df.in$ref.date, FUN = match.neardate, table.dates = df.inflation$date)
+    
+    df.in$acc.value.inflation.adjusted <- df.in$acc.value/df.inflation$value[idx]
+  }
+  
   return(df.in)
 }
 
