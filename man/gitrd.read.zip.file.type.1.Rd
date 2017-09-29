@@ -2,7 +2,7 @@
 % Please edit documentation in R/gitrd_read_zip_file.R
 \name{gitrd.read.zip.file.type.1}
 \alias{gitrd.read.zip.file.type.1}
-\title{Reads zip file post 2011 (internal)}
+\title{Reads folder for zip file post 2011 (internal)}
 \usage{
 gitrd.read.zip.file.type.1(rnd.folder.name, folder.to.unzip = tempdir())
 }
@@ -15,8 +15,8 @@ gitrd.read.zip.file.type.1(rnd.folder.name, folder.to.unzip = tempdir())
 A list with financial statements
 }
 \description{
-Reads zip file post 2011 (internal)
+Reads folder for zip file post 2011 (internal)
 }
 \examples{
-# no example
+# no example (this functions not used directly)
 }

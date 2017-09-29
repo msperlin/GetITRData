@@ -20,5 +20,9 @@ A list with several dataframes containing financial statements
 Reads a single zip file downloaded from Bovespa
 }
 \examples{
-# no example
+
+my.f <- system.file('extdata/434_ARAC_2008-09-30.zip', package = 'GetITRData')
+
+my.l <- gitrd.read.zip.file(my.f, id.type = 'before 2011')
+print(my.l)
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/gitrd_utils.R
 \name{gitrd.fix.dataframes}
 \alias{gitrd.fix.dataframes}
-\title{Fix dataframe for version issues (internal)}
+\title{Fix dataframe for version issues and inflation measures (internal)}
 \usage{
 gitrd.fix.dataframes(df.in, inflation.index, df.inflation)
 }
@@ -18,8 +18,17 @@ When using 'IPCA', the base date as set as the last date found in the inflation 
 The fixed data.frame
 }
 \description{
-Fix dataframe for version issues (internal)
+Fix dataframe for version issues and inflation measures (internal)
 }
 \examples{
- # no example
+#'
+# get example data from RData file
+my.f <- system.file('extdata/ExampleReport_Petrobras.RData', package = 'GetITRData')
+load(my.f)
+
+df.assets <- df.reports$assets[[1]]
+
+df.assets.fixed <- gitrd.fix.dataframes(df.assets,
+                                        inflation.index = 'none',
+                                        df.inflation = data.frame())
 }

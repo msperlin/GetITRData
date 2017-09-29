@@ -4,7 +4,7 @@
 \alias{gitrd.GetITRData}
 \title{Downloads and reads financial reports from Bovespa}
 \usage{
-gitrd.GetITRData(name.companies, first.date = Sys.Date() - 6 * 30,
+gitrd.GetITRData(name.companies, first.date = Sys.Date() - 12 * 30,
   last.date = Sys.Date(), type.info = "individual",
   inflation.index = "none", folder.out = tempdir(), be.quiet = FALSE)
 }
@@ -37,14 +37,11 @@ Alternatively, you can use function gitrd.get.info.companies to import a datafra
 }
 \examples{
 
-\dontrun{
 name.companies <- 'PETROBRAS'
 first.date <- '2005-01-01'
 last.date <-  '2006-01-01'
-last.date <- Sys.Date()
 
 df.statements <- gitrd.GetITRData(name.companies = name.companies,
                                   first.date = first.date,
                                   last.date = last.date)
- }
 }

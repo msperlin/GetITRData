@@ -8,7 +8,11 @@
 #' @export
 #'
 #' @examples
-#' # no example
+#'
+#' my.f <- system.file('extdata/434_ARAC_2008-09-30.zip', package = 'GetITRData')
+#'
+#' my.l <- gitrd.read.zip.file(my.f, id.type = 'before 2011')
+#' print(my.l)
 gitrd.read.zip.file <- function(my.zip.file, folder.to.unzip = tempdir(), id.type) {
 
   # sanity check
@@ -64,7 +68,7 @@ gitrd.read.zip.file <- function(my.zip.file, folder.to.unzip = tempdir(), id.typ
   return(my.l)
 }
 
-#' Reads zip file post 2011 (internal)
+#' Reads folder for zip file post 2011 (internal)
 #'
 #' @inheritParams gitrd.read.zip.file
 #' @param rnd.folder.name Folder where unzipped files are available
@@ -72,7 +76,7 @@ gitrd.read.zip.file <- function(my.zip.file, folder.to.unzip = tempdir(), id.typ
 #' @return A list with financial statements
 #'
 #' @examples
-#' # no example
+#' # no example (this functions not used directly)
 gitrd.read.zip.file.type.1 <- function(rnd.folder.name, folder.to.unzip = tempdir()) {
 
 
@@ -177,7 +181,7 @@ gitrd.read.zip.file.type.1 <- function(rnd.folder.name, folder.to.unzip = tempdi
   return(my.l)
 }
 
-#' Reads zip file pre 2011 (internal)
+#' Reads folder for zip file pre 2011 (internal)
 #'
 #' @inheritParams gitrd.read.zip.file
 #' @param rnd.folder.name Folder where unzipped files are available
@@ -185,7 +189,7 @@ gitrd.read.zip.file.type.1 <- function(rnd.folder.name, folder.to.unzip = tempdi
 #' @return A list with financial statements
 #'
 #' @examples
-#' # no example
+#' # no example (this functions not used directly)
 gitrd.read.zip.file.type.2 <- function(rnd.folder.name, folder.to.unzip = tempdir()) {
 
   # get individual fin statements

@@ -23,15 +23,10 @@ nothing
 Export tibble to an excel file
 }
 \examples{
-\dontrun{
-name.companies <- 'PETROBRAS'
-first.date <- '2005-01-01'
-last.date <-  '2006-01-01'
 
-df.statements <- gitrd.GetITRData(name.companies = name.companies,
-                                  first.date = first.date,
-                                  last.date = last.date)
+# get example data from RData file
+my.f <- system.file('extdata/ExampleReport_Petrobras.RData', package = 'GetITRData')
+load(my.f)
 
-gitrd.export.ITR.data(df.statements, format.data = 'wide')
-}
+gitrd.export.ITR.data(df.reports, base.file.name = 'MyExcelFile', format.data = 'wide')
 }

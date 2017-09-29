@@ -8,10 +8,8 @@
 #'
 #' @examples
 #'
-#' \dontrun{ # make it fast to run in CRAN
 #' df.info <- gitrd.get.info.companies()
 #' str(df.info)
-#' }
 gitrd.get.info.companies <- function() {
 
   # get data from github

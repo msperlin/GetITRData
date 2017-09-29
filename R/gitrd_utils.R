@@ -7,17 +7,12 @@
 #'
 #' @examples
 #'
-#' \dontrun{
-#' name.companies <- 'PETROBRAS'
-#' first.date <- '2000-01-01'
-#' last.date <-  '2005-01-01'
-#' df.statements <- gitrd.GetITRData(name.companies = name.companies,
-#'                                  first.date = first.date,
-#'                                  last.date = last.date)
+#' # get example data from RData file
+#' my.f <- system.file('extdata/ExampleReport_Petrobras.RData', package = 'GetITRData')
+#' load(my.f)
 #'
-#' df.assets <- df.statements$assets[[1]]
+#' df.assets <- df.reports$assets[[1]]
 #' df.assets.wide <- gitrd.convert.to.wide(df.assets)
-#' }
 gitrd.convert.to.wide <- function(data.in) {
 
   if (!any('data.frame' %in% class(data.in))) {
@@ -41,9 +36,8 @@ gitrd.convert.to.wide <- function(data.in) {
 #'
 #' @examples
 #'
-#' \dontrun{
-#' df.info <- gitrd.search.company('GERDAU')
-#' }
+#' gitrd.search.company('GERDAU')
+#'
 gitrd.search.company <- function(char.to.search) {
 
   df.info <- gitrd.get.info.companies()
@@ -78,15 +72,24 @@ gitrd.search.company <- function(char.to.search) {
 
 }
 
-#' Fix dataframe for version issues (internal)
+#' Fix dataframe for version issues and inflation measures (internal)
 #'
 #' @param df.in A dataframe with financial statements
 #' @inheritParams gitrd.GetITRData
-#' @param df.inflation Dataframe with inflation data 
+#' @param df.inflation Dataframe with inflation data
 #' @return The fixed data.frame
+#' @export
 #'
-#' @examples
-#'  # no example
+#' @examples#'
+#' # get example data from RData file
+#' my.f <- system.file('extdata/ExampleReport_Petrobras.RData', package = 'GetITRData')
+#' load(my.f)
+#'
+#' df.assets <- df.reports$assets[[1]]
+#'
+#' df.assets.fixed <- gitrd.fix.dataframes(df.assets,
+#'                                         inflation.index = 'none',
+#'                                         df.inflation = data.frame())
 gitrd.fix.dataframes <- function(df.in, inflation.index, df.inflation) {
 
   # fix .00 in acc.number
@@ -100,7 +103,7 @@ gitrd.fix.dataframes <- function(df.in, inflation.index, df.inflation) {
   if (any(stringr::str_sub(df.in$acc.number, 1, 1) == '4') ) {
     substr(df.in$acc.number, 1, 1) <- "6"
   }
-  
+
   # get reference table for substitution
   ref.table <- unique(df.in[df.in$ref.date == max.date, c('acc.number', 'acc.desc')])
   ref.table <- unique(df.in[ , c('acc.number', 'acc.desc', 'ref.date')])
@@ -119,34 +122,34 @@ gitrd.fix.dataframes <- function(df.in, inflation.index, df.inflation) {
   df.in$acc.desc <- desc.to.use[idx]
 
   # fix inflation
-  
+
   if (inflation.index == 'IPCA') {
-    
+
     # get accumulated inflation index
     df.inflation$cum <- cumprod(df.inflation$value/100 +1)
-    
+
     # use base date as last available date in df.inflation
     base.value <- df.inflation$cum[which.max(df.inflation$date)]
     df.inflation$inflator <- df.inflation$cum/base.value
-    
+
     # match time periods
     idx <- match(format(df.in$ref.date, '%Y-%m'), format(df.inflation$date, '%Y-%m'))
     df.in$acc.value.inflation.adjusted <- df.in$acc.value/df.inflation$inflator[idx]
   }
-  
+
   if (inflation.index == 'dollar') {
 
-    # find closest date for dollar  
+    # find closest date for dollar
     match.neardate <- function(date.in, table.dates) {
       idx <- which.min(abs(date.in - table.dates))
       return(idx)
     }
-    
+
     idx <- sapply(X = df.in$ref.date, FUN = match.neardate, table.dates = df.inflation$date)
-    
+
     df.in$acc.value.inflation.adjusted <- df.in$acc.value/df.inflation$value[idx]
   }
-  
+
   return(df.in)
 }
 
@@ -155,9 +158,12 @@ gitrd.fix.dataframes <- function(df.in, inflation.index, df.inflation) {
 #' @param my.f File to be read
 #'
 #' @return A dataframe with data
-#'
+#' @export
 #' @examples
-#' # no example
+#'
+#' my.f <- system.file('extdata/ITRBPAE.001', package = 'GetITRData')
+#'
+#' df.assets <- gitrd.read.fwf.file(my.f)
 gitrd.read.fwf.file <- function(my.f) {
 
   # set cols for fwf

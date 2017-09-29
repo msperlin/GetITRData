@@ -16,5 +16,8 @@ A dataframe with data
 Reads FWF file from bovespa (internal)
 }
 \examples{
-# no example
+
+my.f <- system.file('extdata/ITRBPAE.001', package = 'GetITRData')
+
+df.assets <- gitrd.read.fwf.file(my.f)
 }

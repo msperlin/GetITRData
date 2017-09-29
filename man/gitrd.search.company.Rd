@@ -17,7 +17,6 @@ Helps users search for a company name
 }
 \examples{
 
-\dontrun{
-df.info <- gitrd.search.company('GERDAU')
-}
+gitrd.search.company('GERDAU')
+
 }
