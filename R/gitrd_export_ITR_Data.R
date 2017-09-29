@@ -14,7 +14,9 @@
 #' my.f <- system.file('extdata/ExampleReport_Petrobras.RData', package = 'GetITRData')
 #' load(my.f)
 #'
+#' \dontrun{ # dontrun: keep cran check time short
 #' gitrd.export.ITR.data(df.reports, base.file.name = 'MyExcelFile', format.data = 'wide')
+#' }
 gitrd.export.ITR.data <- function(data.in,
                                   base.file.name = paste0('GetITRData_Export_',Sys.Date()),
                                   type.export = 'xlsx',

@@ -15,6 +15,8 @@ This file is updated periodically and manually by the author.
 }
 \examples{
 
+\dontrun{ # keep cran check fast
 df.info <- gitrd.get.info.companies()
 str(df.info)
+}
 }

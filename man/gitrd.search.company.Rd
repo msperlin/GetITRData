@@ -17,6 +17,7 @@ Helps users search for a company name
 }
 \examples{
 
+\dontrun{ # dontrun: keep cran check fast
 gitrd.search.company('GERDAU')
-
+}
 }

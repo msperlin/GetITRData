@@ -21,6 +21,7 @@
 #'
 #' @examples
 #'
+#' \dontrun{ #dontrun: keep cran check time short
 #' name.companies <- 'PETROBRAS'
 #' first.date <- '2005-01-01'
 #' last.date <-  '2006-01-01'
@@ -28,6 +29,7 @@
 #' df.statements <- gitrd.GetITRData(name.companies = name.companies,
 #'                                   first.date = first.date,
 #'                                   last.date = last.date)
+#'  }
 gitrd.GetITRData <- function(name.companies,
                              first.date = Sys.Date()-12*30,
                              last.date = Sys.Date(),

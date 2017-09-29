@@ -37,6 +37,7 @@ Alternatively, you can use function gitrd.get.info.companies to import a datafra
 }
 \examples{
 
+\dontrun{ #dontrun: keep cran check time short
 name.companies <- 'PETROBRAS'
 first.date <- '2005-01-01'
 last.date <-  '2006-01-01'
@@ -44,4 +45,5 @@ last.date <-  '2006-01-01'
 df.statements <- gitrd.GetITRData(name.companies = name.companies,
                                   first.date = first.date,
                                   last.date = last.date)
+ }
 }

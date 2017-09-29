@@ -36,8 +36,9 @@ gitrd.convert.to.wide <- function(data.in) {
 #'
 #' @examples
 #'
+#' \dontrun{ # dontrun: keep cran check fast
 #' gitrd.search.company('GERDAU')
-#'
+#' }
 gitrd.search.company <- function(char.to.search) {
 
   df.info <- gitrd.get.info.companies()
