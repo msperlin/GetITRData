@@ -99,10 +99,12 @@ gitrd.GetITRData <- function(name.companies,
 
   idx <- !is.na(df.to.process$id.company)
   df.to.process <- df.to.process[idx, ]
-
+  
+  idx <- !is.na(df.to.process$name.company)
+  df.to.process <- df.to.process[idx, ]
 
   if (nrow(df.to.process) == 0){
-    stop('Cannot find any dates related to companies in registry..')
+    stop('Cannot find any dates related to companies in registry. You should try different dates and companies.')
   }
 
   # msg
@@ -153,6 +155,7 @@ gitrd.GetITRData <- function(name.companies,
     cat(paste0('\n', i.company) )
 
     cat(paste0('\n\tAvailable quarters: ', paste0(temp.df$id.date, collapse = '\t')) )
+    
   }
 
   cat('\n\n')
