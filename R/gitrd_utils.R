@@ -44,8 +44,8 @@ gitrd.search.company <- function(char.to.search) {
   df.info <- gitrd.get.info.companies()
 
   unique.names <- unique(df.info$name.company)
-  char.target <- stringr::str_to_lower(unique.names)
-  char.to.search <- stringr::str_to_lower(char.to.search)
+  char.target <- iconv(stringr::str_to_lower(unique.names),to='ASCII//TRANSLIT')
+  char.to.search <- iconv(stringr::str_to_lower(char.to.search),to='ASCII//TRANSLIT')
 
   idx <- stringr::str_detect(char.target, pattern = stringr::fixed(char.to.search))
 
