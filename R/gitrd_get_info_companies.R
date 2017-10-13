@@ -25,6 +25,7 @@ gitrd.get.info.companies <- function() {
     main.sector = readr::col_character(),
     sub.sector = readr::col_character(),
     segment = readr::col_character(),
+    tickers = readr::col_character(),
     id.file = readr::col_integer(),
     dl.link = readr::col_character(),
     id.date = readr::col_date(),

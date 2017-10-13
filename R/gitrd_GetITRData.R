@@ -99,7 +99,7 @@ gitrd.GetITRData <- function(name.companies,
 
   idx <- !is.na(df.to.process$id.company)
   df.to.process <- df.to.process[idx, ]
-  
+
   idx <- !is.na(df.to.process$name.company)
   df.to.process <- df.to.process[idx, ]
 
@@ -155,7 +155,7 @@ gitrd.GetITRData <- function(name.companies,
     cat(paste0('\n', i.company) )
 
     cat(paste0('\n\tAvailable quarters: ', paste0(temp.df$id.date, collapse = '\t')) )
-    
+
   }
 
   cat('\n\n')
@@ -166,7 +166,14 @@ gitrd.GetITRData <- function(name.companies,
 
     temp.df <- df.to.process[df.to.process$name.company == i.company,  ]
 
-    #browser()
+    # get data from Bovespa site
+    my.id <- temp.df$id.company[1]
+
+    l.out.bov <- gitrd.get.dovespa.data(my.id)
+    df.stock.holders <- l.out.bov$df.stock.holders
+    df.stock.composition <- l.out.bov$df.stock.composition
+
+
     type.info.now <- type.info[which(i.company == name.companies)]
     df.assets <- data.frame()
     df.liabilities <- data.frame()
@@ -253,6 +260,8 @@ gitrd.GetITRData <- function(name.companies,
                                      min.date = min(temp.df$id.date),
                                      max.date = max(temp.df$id.date),
                                      n.quarters = length(temp.df$id.date),
+                                     stock.holders = list(df.stock.holders),
+                                     stock.composition = list(df.stock.composition),
                                      assets = list(df.assets),
                                      liabilities = list(df.liabilities),
                                      income = list(df.income),
