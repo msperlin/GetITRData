@@ -93,6 +93,11 @@ gitrd.search.company <- function(char.to.search) {
 #'                                         df.inflation = data.frame())
 gitrd.fix.dataframes <- function(df.in, inflation.index, df.inflation) {
 
+  # if empty df
+  if (nrow(df.in) == 0) {
+    return(df.in)
+  }
+
   # fix .00 in acc.number
   df.in$acc.number <- stringr::str_replace_all(df.in$acc.number, '.00', '')
 
