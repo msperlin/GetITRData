@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="Marcelo Perlin" />
+
+<meta name="date" content="2017-10-18" />
+
+<title>Using GetITRData to obtain quarterly financial reports from Bovespa</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
+
+
+
+<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Using GetITRData to obtain quarterly financial reports from Bovespa</h1>
+<h4 class="author"><em>Marcelo Perlin</em></h4>
+<h4 class="date"><em>2017-10-18</em></h4>
+
+
+
+<p>Financial statements of companies traded at B3 (formerly Bovespa), the Brazilian stock exchange, are available in its <a href="http://www.bmfbovespa.com.br/">website</a>. Accessing the data for a single company is straightforwardd. In the website one can find a simple interface for accessing this dataset. An example is given <a href="https://www.rad.cvm.gov.br/ENETCONSULTA/frmGerenciaPaginaFRE.aspx?NumeroSequencialDocumento=67775&amp;CodigoTipoInstituicao=2">here</a>. However, gathering and organizing the data for a large scale research, with many companies and many quarters, is painful. Quarterly reports must be downloaded or copied individually and later aggregated. Changes in the accounting format thoughout time can make this process slow, unreliable and irreproducible.</p>
+<p>Package <code>GetITRData</code> provides a R interface to all financial statements available in the website. It not only downloads the data but also organizes it in a tabular format and allows the use of inflation indexes. Users can simply select companies and a time period to download all available data. Several information about current companies, such as sector and available quarters are also at reach. The main purpose of the package is to make it easy to access quarterly financial statements in large scale research, facilitating the reproducibility of corporate finance studies with Bovespa data.</p>
+<div id="installation" class="section level1">
+<h1>Installation</h1>
+<p>The package is available in CRAN (release version) and in Github (development version). You can install any of those with the following code:</p>
+<p>```r # Release version in CRAN install.packages(‘GetITRData’) # not in CRAN yet</p>
+<p># Development version in Github devtools::install_github(‘msperlin/GetITRData’) ```</p>
+</div>
+<div id="how-to-use-getitrdata" class="section level1">
+<h1>How to use <code>GetITRData</code></h1>
+<p>The starting point of <code>GetITRData</code> is to find the official names of companies in Bovespa. Function <code>gitrd.search.company</code> serves this purpose. Given a string (text), it will search for a partial matches in companies names. As an example, let’s find the <em>official</em> name of Petrobras, one of the largest companies in Brazil:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(GetITRData)
+
+<span class="kw">gitrd.search.company</span>(<span class="st">'petrobras'</span>)</code></pre></div>
+<pre><code>## 
+## Reading info file from github
+## Found 24025 lines for 605 companies  [Actives =  458  Inactives =  147 ]
+## Last file update:  2017-10-13
+## 
+## Found 1 companies:
+## PETROBRAS | situation = ATIVO | first date = 1998-09-30 | last date - 2017-06-30</code></pre>
+<p>Its official name in Bovespa records is PETROBRAS. Data for quarterly statements is available from 1998 to 2017. The situation of the company, active or canceled, is also given. This helps verifying the availability of data.</p>
+<p>The content of all available quarterly statements can be accessed with function <code>gitrd.get.info.companies</code>. It will read and parse a .csv file from my <a href="https://github.com/msperlin/GetITRData_auxiliary">github repository</a>. This will be periodically updated for new quarterly statements. Let’s try it out:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df.info &lt;-<span class="st"> </span><span class="kw">gitrd.get.info.companies</span>()</code></pre></div>
+<pre><code>## 
+## Reading info file from github
+## Found 24025 lines for 605 companies  [Actives =  458  Inactives =  147 ]
+## Last file update:  2017-10-13</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">str</span>(df.info)</code></pre></div>
+<pre><code>## Classes 'tbl_df', 'tbl' and 'data.frame':    24025 obs. of  11 variables:
+##  $ id.company  : int  16330 16330 16330 16330 16330 16330 16330 16330 16330 16330 ...
+##  $ name.company: chr  &quot;521 PARTICIPAÇÕES S/A&quot; &quot;521 PARTICIPAÇÕES S/A&quot; &quot;521 PARTICIPAÇÕES S/A&quot; &quot;521 PARTICIPAÇÕES S/A&quot; ...
+##  $ main.sector : chr  NA NA NA NA ...
+##  $ sub.sector  : chr  NA NA NA NA ...
+##  $ segment     : chr  NA NA NA NA ...
+##  $ tickers     : chr  NA NA NA NA ...
+##  $ id.file     : int  47368 42591 40601 37569 32706 30654 27521 22269 20368 17649 ...
+##  $ dl.link     : chr  &quot;http://www.rad.cvm.gov.br/enetconsulta/frmDownloadDocumento.aspx?CodigoInstituicao=2&amp;NumeroSequencialDocumento=47368&quot; &quot;http://www.rad.cvm.gov.br/enetconsulta/frmDownloadDocumento.aspx?CodigoInstituicao=2&amp;NumeroSequencialDocumento=42591&quot; &quot;http://www.rad.cvm.gov.br/enetconsulta/frmDownloadDocumento.aspx?CodigoInstituicao=2&amp;NumeroSequencialDocumento=40601&quot; &quot;http://www.rad.cvm.gov.br/enetconsulta/frmDownloadDocumento.aspx?CodigoInstituicao=2&amp;NumeroSequencialDocumento=37569&quot; ...
+##  $ id.date     : Date, format: &quot;2015-03-31&quot; &quot;2014-09-30&quot; ...
+##  $ id.type     : chr  &quot;after 2011&quot; &quot;after 2011&quot; &quot;after 2011&quot; &quot;after 2011&quot; ...
+##  $ situation   : chr  &quot;ATIVO&quot; &quot;ATIVO&quot; &quot;ATIVO&quot; &quot;ATIVO&quot; ...</code></pre>
+<p>This file includes several information that are gathered from Bovespa: names of companies, sectors, dates quarterly statements and, most importantly, the links to download the files. The resulting dataframe can be used to filter and gather information for large scale research such as downloading financial data for a specific sector.</p>
+<div id="downloading-financial-information-for-one-company" class="section level2">
+<h2>Downloading financial information for ONE company</h2>
+<p>All you need to download financial data with <code>GetITRData</code> are the official names of companies, which can be found with <code>gitrd.search.company</code>, the desired starting and ending dates and the type of financial information (individual or consolidated). Let’s try it for PETROBRAS:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">name.companies &lt;-<span class="st"> 'PETROBRAS'</span>
+first.date &lt;-<span class="st"> '2005-01-01'</span>
+last.date  &lt;-<span class="st"> '2006-01-01'</span>
+type.statements &lt;-<span class="st"> 'individual'</span>
+
+df.reports &lt;-<span class="st"> </span><span class="kw">gitrd.GetITRData</span>(<span class="dt">name.companies =</span> name.companies, 
+                               <span class="dt">first.date =</span> first.date,
+                               <span class="dt">last.date =</span> last.date,
+                               <span class="dt">type.info =</span> type.statements)</code></pre></div>
+<pre><code>## 
+## Reading info file from github
+## Found 24025 lines for 605 companies  [Actives =  458  Inactives =  147 ]
+## Last file update:  2017-10-13
+## 
+## Downloading data for 1 companies
+## Type of financial statements: individual
+## First Date: 2005-01-01
+## Laste Date: 2006-01-01
+## Inflation index: none
+## 
+## Downloading none data using BETS Done
+## 
+## 
+## WARNING: For quarters before 2009, the cash flow statements are not available
+## 
+## Starting processing stage:
+## PETROBRAS
+##  Available quarters: 2005-09-30  2005-06-30  2005-03-31
+## 
+## 
+## Processing PETROBRAS, Quarter = 2005-09-30   Downloading | Reading file
+## Processing PETROBRAS, Quarter = 2005-06-30   Downloading | Reading file
+## Processing PETROBRAS, Quarter = 2005-03-31   Downloading | Reading file</code></pre>
+<p>The resulting object is a <code>tibble</code>, a data.frame type of object that allows for list columns. Let’s have a look in its content:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">str</span>(df.reports)</code></pre></div>
+<pre><code>## Classes 'tbl_df', 'tbl' and 'data.frame':    1 obs. of  12 variables:
+##  $ company.name     : chr &quot;PETROBRAS&quot;
+##  $ company.code     : int 9512
+##  $ type.info        : chr &quot;individual&quot;
+##  $ min.date         : Date, format: &quot;2005-03-31&quot;
+##  $ max.date         : Date, format: &quot;2005-09-30&quot;
+##  $ n.quarters       : int 3
+##  $ stock.holders    :List of 1
+##   ..$ :'data.frame': 8 obs. of  4 variables:
+##   .. ..$ name         : Factor w/ 8 levels &quot;Ações Tesouraria&quot;,..: 2 5 8 3 4 6 1 7
+##   .. ..$ ON.percent   : num  9.95 0.19 50.26 0.16 3.24 ...
+##   .. ..$ PN.percent   : num  2.88 6.35 0 22.31 1.1 ...
+##   .. ..$ total.percent: num  6.92 2.84 28.67 9.67 2.32 ...
+##  $ stock.composition:List of 1
+##   ..$ :'data.frame': 3 obs. of  2 variables:
+##   .. ..$ type.stock      : Factor w/ 3 levels &quot;Ordinárias&quot;,&quot;Preferenciais&quot;,..: 1 2 3
+##   .. ..$ number.of.stocks: num  7.44e+09 5.60e+09 1.30e+10
+##  $ assets           :List of 1
+##   ..$ :Classes 'tbl_df', 'tbl' and 'data.frame': 191 obs. of  5 variables:
+##   .. ..$ acc.number  : chr  &quot;1&quot; &quot;1.01&quot; &quot;1.01.01&quot; &quot;1.01.01.01&quot; ...
+##   .. ..$ acc.desc    : chr  &quot;Ativo Total&quot; &quot;Ativo Circulante&quot; &quot;Disponibilidades&quot; &quot;Caixa e Bancos&quot; ...
+##   .. ..$ acc.value   : int  147026464 41052623 15146496 1498194 13648302 9450575 3488650 4955111 1090180 -83366 ...
+##   .. ..$ ref.date    : Date, format: &quot;2005-09-30&quot; ...
+##   .. ..$ company.name: chr  &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; ...
+##  $ liabilities      :List of 1
+##   ..$ :Classes 'tbl_df', 'tbl' and 'data.frame': 160 obs. of  5 variables:
+##   .. ..$ acc.number  : chr  &quot;2&quot; &quot;2.01&quot; &quot;2.01.01&quot; &quot;2.01.01.01&quot; ...
+##   .. ..$ acc.desc    : chr  &quot;Passivo Total&quot; &quot;Passivo Circulante&quot; &quot;Empréstimos e Financiamentos&quot; &quot;Financiamentos&quot; ...
+##   .. ..$ acc.value   : int  147026464 44603494 1154258 1039841 114417 0 5205735 7429086 1156875 935603 ...
+##   .. ..$ ref.date    : Date, format: &quot;2005-09-30&quot; ...
+##   .. ..$ company.name: chr  &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; ...
+##  $ income           :List of 1
+##   ..$ :Classes 'tbl_df', 'tbl' and 'data.frame': 100 obs. of  5 variables:
+##   .. ..$ acc.number  : chr  &quot;3.01&quot; &quot;3.02&quot; &quot;3.03&quot; &quot;3.04&quot; ...
+##   .. ..$ acc.desc    : chr  &quot;Receita Bruta de Vendas e/ou Serviços&quot; &quot;Deduções da Receita Bruta&quot; &quot;Receita Líquida de Vendas e/ou Serviços&quot; &quot;Custo de Bens e/ou Serviços Vendidos&quot; ...
+##   .. ..$ acc.value   : int  37870949 -9778549 28092400 -15030559 13061841 -4270217 -1221668 -895230 -899 -894331 ...
+##   .. ..$ ref.date    : Date, format: &quot;2005-09-30&quot; ...
+##   .. ..$ company.name: chr  &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; ...
+##  $ df.cashflow      :List of 1
+##   ..$ :'data.frame': 0 obs. of  5 variables:
+##   .. ..$ acc.desc    : logi 
+##   .. ..$ acc.value   : logi 
+##   .. ..$ acc.number  : logi 
+##   .. ..$ company.name: chr 
+##   .. ..$ ref.date    :Class 'Date'  num(0) 
+##   .. ..- attr(*, &quot;na.action&quot;)=Class 'omit'  Named int [1:3] 1 2 3
+##   .. .. .. ..- attr(*, &quot;names&quot;)= chr [1:3] &quot;1&quot; &quot;2&quot; &quot;3&quot;</code></pre>
+<p>Object <code>df.reports</code> only has one row since we only asked for data of one company. The number of rows increases with the number of companies, as we will soon learn with the next example. All financial statements for the different quarters are available within <code>df.reports</code>. For example, the income statements for all desired quarters of PETROBRAS are:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df.income.long &lt;-<span class="st"> </span>df.reports<span class="op">$</span>income[[<span class="dv">1</span>]]
+
+<span class="kw">str</span>(df.income.long)</code></pre></div>
+<pre><code>## Classes 'tbl_df', 'tbl' and 'data.frame':    100 obs. of  5 variables:
+##  $ acc.number  : chr  &quot;3.01&quot; &quot;3.02&quot; &quot;3.03&quot; &quot;3.04&quot; ...
+##  $ acc.desc    : chr  &quot;Receita Bruta de Vendas e/ou Serviços&quot; &quot;Deduções da Receita Bruta&quot; &quot;Receita Líquida de Vendas e/ou Serviços&quot; &quot;Custo de Bens e/ou Serviços Vendidos&quot; ...
+##  $ acc.value   : int  37870949 -9778549 28092400 -15030559 13061841 -4270217 -1221668 -895230 -899 -894331 ...
+##  $ ref.date    : Date, format: &quot;2005-09-30&quot; &quot;2005-09-30&quot; ...
+##  $ company.name: chr  &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; &quot;PETROBRAS&quot; ...</code></pre>
+<p>The resulting dataframe is in the long format, ready for processing. In the long format, financial statements of different quarters are stacked. In the wide format, we have the quarters as dates. If you want the wide format, which I believe is most common in financial analysis, you can use function <code>gitrd.convert.to.wide</code>. See an example next:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df.income.wide &lt;-<span class="st"> </span><span class="kw">gitrd.convert.to.wide</span>(df.income.long)
+
+knitr<span class="op">::</span><span class="kw">kable</span>(df.income.wide )</code></pre></div>
+<table>
+<thead>
+<tr class="header">
+<th align="left">acc.number</th>
+<th align="left">acc.desc</th>
+<th align="left">company.name</th>
+<th align="right">2005-03-31</th>
+<th align="right">2005-06-30</th>
+<th align="right">2005-09-30</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">3.01</td>
+<td align="left">Receita Bruta de Vendas e/ou Serviços</td>
+<td align="left">PETROBRAS</td>
+<td align="right">31355183</td>
+<td align="right">35425584</td>
+<td align="right">37870949</td>
+</tr>
+<tr class="even">
+<td align="left">3.02</td>
+<td align="left">Deduções da Receita Bruta</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-8788723</td>
+<td align="right">-9321322</td>
+<td align="right">-9778549</td>
+</tr>
+<tr class="odd">
+<td align="left">3.03</td>
+<td align="left">Receita Líquida de Vendas e/ou Serviços</td>
+<td align="left">PETROBRAS</td>
+<td align="right">22566460</td>
+<td align="right">26104262</td>
+<td align="right">28092400</td>
+</tr>
+<tr class="even">
+<td align="left">3.04</td>
+<td align="left">Custo de Bens e/ou Serviços Vendidos</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-12052044</td>
+<td align="right">-14530594</td>
+<td align="right">-15030559</td>
+</tr>
+<tr class="odd">
+<td align="left">3.05</td>
+<td align="left">Resultado Bruto</td>
+<td align="left">PETROBRAS</td>
+<td align="right">10514416</td>
+<td align="right">11573668</td>
+<td align="right">13061841</td>
+</tr>
+<tr class="even">
+<td align="left">3.06</td>
+<td align="left">Despesas/Receitas Operacionais</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-2869703</td>
+<td align="right">-5249799</td>
+<td align="right">-4270217</td>
+</tr>
+<tr class="odd">
+<td align="left">3.06.01</td>
+<td align="left">Com Vendas</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-858170</td>
+<td align="right">-820899</td>
+<td align="right">-1221668</td>
+</tr>
+<tr class="even">
+<td align="left">3.06.02</td>
+<td align="left">Gerais e Administrativas</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-768830</td>
+<td align="right">-880185</td>
+<td align="right">-895230</td>
+</tr>
+<tr class="odd">
+<td align="left">3.06.02.01</td>
+<td align="left">Honor.Diretoria e Cons. Administração</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-984</td>
+<td align="right">-886</td>
+<td align="right">-899</td>
+</tr>
+<tr class="even">
+<td align="left">3.06.02.02</td>
+<td align="left">De Administração</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-767846</td>
+<td align="right">-879299</td>
+<td align="right">-894331</td>
+</tr>
+<tr class="odd">
+<td align="left">3.06.03</td>
+<td align="left">Financeiras</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-53787</td>
+<td align="right">-480281</td>
+<td align="right">-282706</td>
+</tr>
+<tr class="even">
+<td align="left">3.06.03.01</td>
+<td align="left">Receitas Financeiras</td>
+<td align="left">PETROBRAS</td>
+<td align="right">525452</td>
+<td align="right">106753</td>
+<td align="right">272290</td>
+</tr>
+<tr class="odd">
+<td align="left">3.06.03.02</td>
+<td align="left">Despesas Financeiras</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-579239</td>
+<td align="right">-587034</td>
+<td align="right">-554996</td>
+</tr>
+<tr class="even">
+<td align="left">3.06.04</td>
+<td align="left">Outras Receitas Operacionais</td>
+<td align="left">PETROBRAS</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">3.06.05</td>
+<td align="left">Outras Despesas Operacionais</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-2104923</td>
+<td align="right">-3155693</td>
+<td align="right">-1956858</td>
+</tr>
+<tr class="even">
+<td align="left">3.06.05.01</td>
+<td align="left">Custos Explot.p/Extração Petróleo/Gás</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-107010</td>
+<td align="right">-101527</td>
+<td align="right">-334116</td>
+</tr>
+<tr class="odd">
+<td align="left">3.06.05.02</td>
+<td align="left">Custo c/ Pesq. Desenv. Tecnológico</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-192741</td>
+<td align="right">-221813</td>
+<td align="right">-247456</td>
+</tr>
+<tr class="even">
+<td align="left">3.06.05.03</td>
+<td align="left">Tributárias</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-185581</td>
+<td align="right">-290086</td>
+<td align="right">-114519</td>
+</tr>
+<tr class="odd">
+<td align="left">3.06.05.04</td>
+<td align="left">Variações Monetárias e Cambiais Líquidas</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-117821</td>
+<td align="right">-921626</td>
+<td align="right">-401757</td>
+</tr>
+<tr class="even">
+<td align="left">3.06.05.05</td>
+<td align="left">Outras Despesas/Receitas Oper. Liquidas</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-1501770</td>
+<td align="right">-1620641</td>
+<td align="right">-859010</td>
+</tr>
+<tr class="odd">
+<td align="left">3.06.06</td>
+<td align="left">Resultado da Equivalência Patrimonial</td>
+<td align="left">PETROBRAS</td>
+<td align="right">916007</td>
+<td align="right">87259</td>
+<td align="right">86245</td>
+</tr>
+<tr class="even">
+<td align="left">3.07</td>
+<td align="left">Resultado Operacional</td>
+<td align="left">PETROBRAS</td>
+<td align="right">7644713</td>
+<td align="right">6323869</td>
+<td align="right">8791624</td>
+</tr>
+<tr class="odd">
+<td align="left">3.08</td>
+<td align="left">Resultado Não Operacional</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-151498</td>
+<td align="right">-64670</td>
+<td align="right">1064</td>
+</tr>
+<tr class="even">
+<td align="left">3.08.01</td>
+<td align="left">Receitas</td>
+<td align="left">PETROBRAS</td>
+<td align="right">1256</td>
+<td align="right">8805</td>
+<td align="right">450552</td>
+</tr>
+<tr class="odd">
+<td align="left">3.08.02</td>
+<td align="left">Despesas</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-152754</td>
+<td align="right">-73475</td>
+<td align="right">-449488</td>
+</tr>
+<tr class="even">
+<td align="left">3.09</td>
+<td align="left">Resultado Antes Tributação/Participações</td>
+<td align="left">PETROBRAS</td>
+<td align="right">7493215</td>
+<td align="right">6259199</td>
+<td align="right">8792688</td>
+</tr>
+<tr class="odd">
+<td align="left">3.10</td>
+<td align="left">Provisão para IR e Contribuição Social</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-1847762</td>
+<td align="right">-1151342</td>
+<td align="right">-3002751</td>
+</tr>
+<tr class="even">
+<td align="left">3.11</td>
+<td align="left">IR Diferido</td>
+<td align="left">PETROBRAS</td>
+<td align="right">-538132</td>
+<td align="right">-408725</td>
+<td align="right">-111709</td>
+</tr>
+<tr class="odd">
+<td align="left">3.12</td>
+<td align="left">Participações/Contribuições Estatutárias</td>
+<td align="left">PETROBRAS</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">3.12.01</td>
+<td align="left">Participações</td>
+<td align="left">PETROBRAS</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">3.12.01.01</td>
+<td align="left">Partic. de Empregados e administradores</td>
+<td align="left">PETROBRAS</td>
+<td align="right">0</td>
+<td align="right">NA</td>
+<td align="right">NA</td>
+</tr>
+<tr class="even">
+<td align="left">3.12.02</td>
+<td align="left">Contribuições</td>
+<td align="left">PETROBRAS</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="left">3.13</td>
+<td align="left">Reversão dos Juros sobre Capital Próprio</td>
+<td align="left">PETROBRAS</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="left">3.15</td>
+<td align="left">Lucro/Prejuízo do Período</td>
+<td align="left">PETROBRAS</td>
+<td align="right">5107321</td>
+<td align="right">4699132</td>
+<td align="right">5678228</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="downloading-financial-information-for-several-companies" class="section level2">
+<h2>Downloading financial information for SEVERAL companies</h2>
+<p>If you are doing serious research, it is likely that you need financial statements for more than one company. Package <code>GetITRData</code> is specially designed for handling large scale download of data. Let’s build a case with 5 randomly selected companies:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set.seed</span>(<span class="dv">5</span>)
+my.companies &lt;-<span class="st"> </span><span class="kw">sample</span>(<span class="kw">unique</span>(df.info<span class="op">$</span>name.company), <span class="dv">5</span>)
+
+first.date &lt;-<span class="st"> '2005-01-01'</span>
+last.date  &lt;-<span class="st"> '2006-01-01'</span>
+type.statements &lt;-<span class="st"> 'individual'</span>
+
+df.reports &lt;-<span class="st"> </span><span class="kw">gitrd.GetITRData</span>(<span class="dt">name.companies =</span> my.companies, 
+                                  <span class="dt">first.date =</span> first.date,
+                                  <span class="dt">last.date =</span> last.date,
+                                  <span class="dt">type.info =</span> type.statements)</code></pre></div>
+<pre><code>## 
+## Reading info file from github
+## Found 24025 lines for 605 companies  [Actives =  458  Inactives =  147 ]
+## Last file update:  2017-10-13
+## 
+## Downloading data for 5 companies
+## Type of financial statements: individual individual  individual  individual  individual
+## First Date: 2005-01-01
+## Laste Date: 2006-01-01
+## Inflation index: none
+## 
+## Downloading none data using BETS Done
+## 
+## 
+## WARNING: Cant find available dates for MULTIPLUS SA
+## WARNING: For quarters before 2009, the cash flow statements are not available
+## 
+## Starting processing stage:
+## BANESTES S/A
+##  Available quarters: 2005-09-30  2005-06-30  2005-03-31
+## CABINDA PARTICIPAÇÕES S.A.
+##  Available quarters: 2005-09-30  2005-06-30  2005-03-31
+## CIA. IGUAÇU DE CAFÉ SOLÚVEL
+##  Available quarters: 2005-09-30  2005-06-30  2005-03-31
+## TELEFÔNICA BRASIL
+##  Available quarters: 2005-09-30  2005-06-30  2005-03-31
+## 
+## 
+## Processing BANESTES S/A, Quarter = 2005-09-30    Downloading | Reading file
+## Processing BANESTES S/A, Quarter = 2005-06-30    Downloading | Reading file
+## Processing BANESTES S/A, Quarter = 2005-03-31    Downloading | Reading file
+## Processing CABINDA PARTICIPAÇÕES S.A., Quarter = 2005-09-30  Downloading | Reading file
+## Processing CABINDA PARTICIPAÇÕES S.A., Quarter = 2005-06-30  Downloading | Reading file
+## Processing CABINDA PARTICIPAÇÕES S.A., Quarter = 2005-03-31  Downloading | Reading file
+## Processing CIA. IGUAÇU DE CAFÉ SOLÚVEL, Quarter = 2005-09-30 Downloading | Reading file
+## Processing CIA. IGUAÇU DE CAFÉ SOLÚVEL, Quarter = 2005-06-30 Downloading | Reading file
+## Processing CIA. IGUAÇU DE CAFÉ SOLÚVEL, Quarter = 2005-03-31 Downloading | Reading file
+## Processing TELEFÔNICA BRASIL, Quarter = 2005-09-30   Downloading | Reading file
+## Processing TELEFÔNICA BRASIL, Quarter = 2005-06-30   Downloading | Reading file
+## Processing TELEFÔNICA BRASIL, Quarter = 2005-03-31   Downloading | Reading file</code></pre>
+<p>And now we can check the resulting <code>tibble</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(df.reports )</code></pre></div>
+<pre><code>## # A tibble: 4 x 12
+##                  company.name company.code  type.info   min.date
+##                         &lt;chr&gt;        &lt;int&gt;      &lt;chr&gt;     &lt;date&gt;
+## 1                BANESTES S/A         1155 individual 2005-03-31
+## 2  CABINDA PARTICIPAÇÕES S.A.        19119 individual 2005-03-31
+## 3 CIA. IGUAÇU DE CAFÉ SOLÚVEL         3336 individual 2005-03-31
+## 4           TELEFÔNICA BRASIL        17671 individual 2005-03-31
+## # ... with 8 more variables: max.date &lt;date&gt;, n.quarters &lt;int&gt;,
+## #   stock.holders &lt;list&gt;, stock.composition &lt;list&gt;, assets &lt;list&gt;,
+## #   liabilities &lt;list&gt;, income &lt;list&gt;, df.cashflow &lt;list&gt;</code></pre>
+<p>Every row of <code>df.reports</code> will provide information for one company. Metadata about the corresponding dataframes such as min/max dates is available in the first columns. Keeping a tabular structure facilitates the organization and future processing of all financial data. We can use tibble <code>df.reports</code> for creating other dataframes in the long format containing data for all companies. See next, where we create dataframes with the assets and liabilities of all companies:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">df.assets &lt;-<span class="st"> </span><span class="kw">do.call</span>(<span class="dt">what =</span> rbind, <span class="dt">args =</span> df.reports<span class="op">$</span>assets)
+df.liabilities &lt;-<span class="st"> </span><span class="kw">do.call</span>(<span class="dt">what =</span> rbind, <span class="dt">args =</span> df.reports<span class="op">$</span>liabilities)
+
+df.assets.liabilities &lt;-<span class="st"> </span><span class="kw">rbind</span>(df.assets, df.liabilities)</code></pre></div>
+<p>As an example, let’s use the resulting dataframe for calculating and analyzing a simple liquidity index of a company, the total of current (liquid) assets (<em>Ativo circulante</em>) divided by the total of current short term liabilities (<em>Passivo Circulante</em>), over time.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(dplyr)</code></pre></div>
+<pre><code>## 
+## Attaching package: 'dplyr'</code></pre>
+<pre><code>## The following objects are masked from 'package:stats':
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">my.tab &lt;-<span class="st"> </span>df.assets.liabilities <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(company.name, ref.date) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarise</span>(<span class="dt">Liq.Index =</span> acc.value[acc.number <span class="op">==</span><span class="st"> '1.01'</span>]<span class="op">/</span><span class="st"> </span>acc.value[acc.number <span class="op">==</span><span class="st"> '2.01'</span>])
+
+my.tab</code></pre></div>
+<pre><code>## # A tibble: 12 x 3
+## # Groups:   company.name [?]
+##                   company.name   ref.date Liq.Index
+##                          &lt;chr&gt;     &lt;date&gt;     &lt;dbl&gt;
+##  1                BANESTES S/A 2005-03-31 0.7985816
+##  2                BANESTES S/A 2005-06-30 0.8393188
+##  3                BANESTES S/A 2005-09-30 0.9151590
+##  4  CABINDA PARTICIPAÇÕES S.A. 2005-03-31 0.1538462
+##  5  CABINDA PARTICIPAÇÕES S.A. 2005-06-30 0.5000000
+##  6  CABINDA PARTICIPAÇÕES S.A. 2005-09-30       Inf
+##  7 CIA. IGUAÇU DE CAFÉ SOLÚVEL 2005-03-31 2.3459918
+##  8 CIA. IGUAÇU DE CAFÉ SOLÚVEL 2005-06-30 2.7291873
+##  9 CIA. IGUAÇU DE CAFÉ SOLÚVEL 2005-09-30 2.1644541
+## 10           TELEFÔNICA BRASIL 2005-03-31 1.2043068
+## 11           TELEFÔNICA BRASIL 2005-06-30 0.9935837
+## 12           TELEFÔNICA BRASIL 2005-09-30 0.9004099</code></pre>
+<p>Now we can visualize the information using <code>ggplot2</code>:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ggplot2)
+
+p &lt;-<span class="st"> </span><span class="kw">ggplot</span>(my.tab, <span class="kw">aes</span>(<span class="dt">x =</span> ref.date, <span class="dt">y =</span> Liq.Index, <span class="dt">fill =</span> company.name)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_col</span>(<span class="dt">position =</span> <span class="st">'dodge'</span> )
+<span class="kw">print</span>(p)</code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<p>As we can see, CIA IGUACU is the company with highest liquidity, being able to pay its short term debt with the current assets in all quarters. We can certainly do a lot more interesting studies based on this dataset.</p>
+</div>
+<div id="exporting-financial-data" class="section level2">
+<h2>Exporting financial data</h2>
+<p>The package includes function <code>gitrd.export.ITR.data</code> for exporting the financial data to an Excel file. Users can choose between the long and wide format. See next:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">my.basename &lt;-<span class="st"> 'MyExcelData'</span>
+my.format &lt;-<span class="st"> 'xlsx'</span> <span class="co"># only supported so far</span>
+<span class="kw">gitrd.export.ITR.data</span>(<span class="dt">data.in =</span> df.reports, 
+                      <span class="dt">base.file.name =</span> my.basename,
+                      <span class="dt">type.export =</span> my.format,
+                      <span class="dt">format.data =</span> <span class="st">'long'</span>)</code></pre></div>
+<p>The resulting Excel file contains all data available in <code>df.reports</code>.</p>
+</div>
+</div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

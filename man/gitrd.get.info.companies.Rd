@@ -4,7 +4,11 @@
 \alias{gitrd.get.info.companies}
 \title{Reads up to date information about Bovespa companies from a github file}
 \usage{
-gitrd.get.info.companies()
+gitrd.get.info.companies(type.data = "companies&files")
+}
+\arguments{
+\item{type.data}{A string that sets the type of information to be returned ('companies' or 'companies&files').
+If 'companies', it will return a dataframe with several information about companies, but without files addresses.}
 }
 \value{
 A dataframe with several information about Bovespa companies

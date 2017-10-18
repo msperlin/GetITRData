@@ -4,7 +4,7 @@
 #' This file is updated periodically and manually by the author.
 #'
 #' @param type.data A string that sets the type of information to be returned ('companies' or 'companies&files').
-#' If 'companies', it will return a dataframe with several information about companies, but without files addresses.
+#' If 'companies', it will return a dataframe with several information about companies, but without files download link.
 #'
 #' @return A dataframe with several information about Bovespa companies
 #' @export
@@ -60,8 +60,28 @@ gitrd.get.info.companies <- function(type.data = 'companies&files') {
   cat('\nLast file update: ', my.last.update)
 
   if (type.data == 'companies') {
-    df.info <- unique(df.info[, -c(7:10)])
+
+    df.info.agg <- unique(df.info[, -c(7:10)])
+
+    my.fun <- function(df) {
+      return(c(min(df$id.date), max(df$id.date)))
+    }
+    out <- by(data = df.info, INDICES = df.info$name.company, FUN = my.fun)
+
+    df.temp <- data.frame(name.company = names(out),
+               first.date = sapply(out, FUN = function(x) as.character(x[1])),
+               last.date = sapply(out, FUN = function(x) as.character(x[2])),
+    stringsAsFactors = F )
+
+    df.info.agg <- merge(df.info.agg, df.temp, by = 'name.company')
+    df.info.agg$first.date <- as.Date(df.info.agg$first.date)
+    df.info.agg$last.date <- as.Date(df.info.agg$last.date)
+
+    return(df.info.agg)
+
+  } else {
+    return(df.info)
   }
 
-  return(df.info)
+
 }

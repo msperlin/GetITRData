@@ -265,7 +265,7 @@ gitrd.GetITRData <- function(name.companies,
                                      assets = list(df.assets),
                                      liabilities = list(df.liabilities),
                                      income = list(df.income),
-                                     df.cashflow = list(df.cashflow))
+                                     cashflow = list(df.cashflow))
 
     tibble.out <- dplyr::bind_rows(tibble.out, tibble.company)
 

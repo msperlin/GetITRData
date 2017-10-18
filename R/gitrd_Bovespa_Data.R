@@ -35,7 +35,10 @@ gitrd.get.dovespa.data <- function(my.id) {
 
     # Stockholders data
 
-    df.stock.holders <- data.out[[8]]
+    idx <- sapply(data.out, FUN = function(df.in) any(colnames(df.in) == '%ON'))
+    tbl.idx <- which(idx)
+
+    df.stock.holders <- data.out[[tbl.idx]]
     names(df.stock.holders) <- c('name', 'ON.percent', 'PN.percent', 'total.percent')
     df.stock.holders$ON.percent <- fix.cols(df.stock.holders$ON.percent)
     df.stock.holders$PN.percent <- fix.cols(df.stock.holders$PN.percent)
