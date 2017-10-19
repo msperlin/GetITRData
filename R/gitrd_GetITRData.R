@@ -169,10 +169,11 @@ gitrd.GetITRData <- function(name.companies,
     # get data from Bovespa site
     my.id <- temp.df$id.company[1]
 
-    l.out.bov <- gitrd.get.dovespa.data(my.id)
+    l.out.bov <- gitrd.get.bovespa.data(my.id)
+
     df.stock.holders <- l.out.bov$df.stock.holders
     df.stock.composition <- l.out.bov$df.stock.composition
-
+    df.dividends <- l.out.bov$df.dividends
 
     type.info.now <- type.info[which(i.company == name.companies)]
     df.assets <- data.frame()
@@ -262,6 +263,7 @@ gitrd.GetITRData <- function(name.companies,
                                      n.quarters = length(temp.df$id.date),
                                      stock.holders = list(df.stock.holders),
                                      stock.composition = list(df.stock.composition),
+                                     dividends = list(df.dividends),
                                      assets = list(df.assets),
                                      liabilities = list(df.liabilities),
                                      income = list(df.income),
