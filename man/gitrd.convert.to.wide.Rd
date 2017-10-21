@@ -4,10 +4,12 @@
 \alias{gitrd.convert.to.wide}
 \title{Converts a dataframe from gitr_GetITRData to the wide format}
 \usage{
-gitrd.convert.to.wide(data.in)
+gitrd.convert.to.wide(data.in, data.in.cols = "original")
 }
 \arguments{
 \item{data.in}{Data frame with financial information}
+
+\item{data.in.cols}{Which data to go in rows values ('original' or 'inflation adjusted')}
 }
 \value{
 A dataframe in the wide format
@@ -21,6 +23,6 @@ Converts a dataframe from gitr_GetITRData to the wide format
 my.f <- system.file('extdata/ExampleReport_Petrobras.RData', package = 'GetITRData')
 load(my.f)
 
-df.assets <- df.reports$assets[[1]]
+df.assets <- df.reports$fr.assets[[1]]
 df.assets.wide <- gitrd.convert.to.wide(df.assets)
 }

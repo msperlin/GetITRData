@@ -4,12 +4,15 @@
 \alias{gitrd.read.zip.file.type.1}
 \title{Reads folder for zip file post 2011 (internal)}
 \usage{
-gitrd.read.zip.file.type.1(rnd.folder.name, folder.to.unzip = tempdir())
+gitrd.read.zip.file.type.1(rnd.folder.name, folder.to.unzip = tempdir(),
+  type.fin.report)
 }
 \arguments{
 \item{rnd.folder.name}{Folder where unzipped files are available}
 
 \item{folder.to.unzip}{Folder to unzip files (default = tempdir())}
+
+\item{type.fin.report}{Peridodicy of fin data ('itr' - quarterly or 'dfp' - annual)}
 }
 \value{
 A list with financial statements

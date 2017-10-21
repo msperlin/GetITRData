@@ -1,6 +1,7 @@
 #' Converts a dataframe from gitr_GetITRData to the wide format
 #'
 #' @param data.in Data frame with financial information
+#' @param data.in.cols Which data to go in rows values ('original' or 'inflation adjusted')
 #'
 #' @return A dataframe in the wide format
 #' @export
@@ -11,17 +12,26 @@
 #' my.f <- system.file('extdata/ExampleReport_Petrobras.RData', package = 'GetITRData')
 #' load(my.f)
 #'
-#' df.assets <- df.reports$assets[[1]]
+#' df.assets <- df.reports$fr.assets[[1]]
 #' df.assets.wide <- gitrd.convert.to.wide(df.assets)
-gitrd.convert.to.wide <- function(data.in) {
+gitrd.convert.to.wide <- function(data.in, data.in.cols = 'original') {
+
+  possible.types <- c('original','inflation adjusted')
+  if ( !any(data.in.cols %in% possible.types) ) {
+    stop('ERROR: input data.in.cols must be either "original" or "inflation adjusted"')
+  }
 
   if (!any('data.frame' %in% class(data.in))) {
     stop('input data.in does not seems to be a dataframe..')
   }
 
+  value.var <- switch(data.in.cols,
+                      'original' = 'acc.value',
+                      'inflation adjusted' =  'acc.value.infl.adj')
+
   df.wide <- reshape2::dcast(data = data.in,
                    formula = acc.number + acc.desc + company.name  ~ ref.date,
-                   value.var = 'acc.value'  )
+                   value.var = value.var, fill = 0)
 
   return(df.wide)
 
@@ -86,12 +96,12 @@ gitrd.search.company <- function(char.to.search) {
 #' my.f <- system.file('extdata/ExampleReport_Petrobras.RData', package = 'GetITRData')
 #' load(my.f)
 #'
-#' df.assets <- df.reports$assets[[1]]
+#' df.assets <- df.reports$fr.assets[[1]]
 #'
 #' df.assets.fixed <- gitrd.fix.dataframes(df.assets,
 #'                                         inflation.index = 'none',
 #'                                         df.inflation = data.frame())
-gitrd.fix.dataframes <- function(df.in, inflation.index, df.inflation) {
+gitrd.fix.dataframes <- function(df.in, inflation.index, df.inflation, max.levels = 3) {
 
   # if empty df
   if (nrow(df.in) == 0) {
@@ -101,6 +111,9 @@ gitrd.fix.dataframes <- function(df.in, inflation.index, df.inflation) {
   # fix .00 in acc.number
   df.in$acc.number <- stringr::str_replace_all(df.in$acc.number, '.00', '')
 
+  # fix change: 1.03 -> 1.02
+  #browser()
+
   # fix names of acc.desc using latest info
   df.in$ref.date <- as.Date(df.in$ref.date)
   max.date <- max(df.in$ref.date)
@@ -109,6 +122,15 @@ gitrd.fix.dataframes <- function(df.in, inflation.index, df.inflation) {
   if (any(stringr::str_sub(df.in$acc.number, 1, 1) == '4') ) {
     substr(df.in$acc.number, 1, 1) <- "6"
   }
+
+  # remove according to max.levels
+  my.count <- function(x) {
+    splitted <- stringr::str_split(x, stringr::fixed('.') )[[1]]
+    return(length(splitted))
+  }
+
+  idx <- sapply(df.in$acc.number, my.count) <= max.levels
+  df.in <- df.in[idx, ]
 
   # get reference table for substitution
   ref.table <- unique(df.in[df.in$ref.date == max.date, c('acc.number', 'acc.desc')])
@@ -140,7 +162,7 @@ gitrd.fix.dataframes <- function(df.in, inflation.index, df.inflation) {
 
     # match time periods
     idx <- match(format(df.in$ref.date, '%Y-%m'), format(df.inflation$date, '%Y-%m'))
-    df.in$acc.value.inflation.adjusted <- df.in$acc.value/df.inflation$inflator[idx]
+    df.in$acc.value.infl.adj <- df.in$acc.value/df.inflation$inflator[idx]
   }
 
   if (inflation.index == 'dollar') {
@@ -153,8 +175,13 @@ gitrd.fix.dataframes <- function(df.in, inflation.index, df.inflation) {
 
     idx <- sapply(X = df.in$ref.date, FUN = match.neardate, table.dates = df.inflation$date)
 
-    df.in$acc.value.inflation.adjusted <- df.in$acc.value/df.inflation$value[idx]
+    df.in$acc.value.infl.adj <- df.in$acc.value/df.inflation$value[idx]
   }
+
+  # fix cols order
+  my.col <- c("company.name","ref.date", "acc.number", "acc.desc",
+              "acc.value", "acc.value.infl.adj")
+  df.in <- df.in[ , my.col]
 
   return(df.in)
 }
@@ -162,17 +189,27 @@ gitrd.fix.dataframes <- function(df.in, inflation.index, df.inflation) {
 #' Reads FWF file from bovespa (internal)
 #'
 #' @param my.f File to be read
-#'
+#' @inheritParams gitrd.GetITRData
+#' @inheritParams gitrd.read.zip.file
 #' @return A dataframe with data
 #' @export
 #' @examples
 #'
 #' my.f <- system.file('extdata/ITRBPAE.001', package = 'GetITRData')
 #'
-#' df.assets <- gitrd.read.fwf.file(my.f)
-gitrd.read.fwf.file <- function(my.f) {
+#' df.assets <- gitrd.read.fwf.file(my.f, type.fin.report = 'itr')
+gitrd.read.fwf.file <- function(my.f, type.fin.report) {
+
+  if (file.size(my.f) ==0 ) {
+    df.out <- data.frame(acc.number= NA,
+                         acc.desc = NA,
+                         acc.value = NA)
+    return(df.out)
+  }
 
   # set cols for fwf
+  if (type.fin.report == 'itr') {
+
   my.col.types <- readr::cols(
     acc.number = readr::col_character(),
     acc.desc = readr::col_character(),
@@ -180,12 +217,34 @@ gitrd.read.fwf.file <- function(my.f) {
   )
 
   my.col.names<-  c('acc.number', 'acc.desc', 'acc.value')
-  my.pos <- readr::fwf_positions(start = c(15, 28, 74), end = c(27, 73, 88),
+  my.pos <- readr::fwf_positions(start = c(15, 28, 74), end = c(27, 67, 82),
                                  col_names = my.col.names)
+
+  }
+
+  if (type.fin.report == 'dfp') {
+
+    my.col.types <- readr::cols(
+      acc.number = readr::col_character(),
+      acc.desc = readr::col_character(),
+      acc.value1 = readr::col_integer(),
+      acc.value2 = readr::col_integer(),
+      acc.value = readr::col_integer()
+    )
+
+    my.col.names<-  c('acc.number', 'acc.desc', 'acc.value1','acc.value2','acc.value')
+    my.pos <- readr::fwf_positions(start = c(15, 28, 74,89,89+14+1), end = c(27, 67, 82,97,112),
+                                   col_names = my.col.names)
+
+  }
 
   df.out <- readr::read_fwf(my.f, my.pos,
                                locale = readr::locale(encoding = 'Latin1'), col_types =  my.col.types)
 
+
+  if (type.fin.report == 'dfp') {
+    df.out <- df.out[, c('acc.number', 'acc.desc', 'acc.value')]
+  }
   # fix for empty data
   if (nrow(df.out) == 0) {
     df.out <- tibble::tibble(acc.number = NA,

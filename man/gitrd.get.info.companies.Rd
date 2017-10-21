@@ -4,18 +4,19 @@
 \alias{gitrd.get.info.companies}
 \title{Reads up to date information about Bovespa companies from a github file}
 \usage{
-gitrd.get.info.companies(type.data = "companies&files")
+gitrd.get.info.companies(type.data = "companies_files")
 }
 \arguments{
-\item{type.data}{A string that sets the type of information to be returned ('companies' or 'companies&files').
-If 'companies', it will return a dataframe with several information about companies, but without files addresses.}
+\item{type.data}{A string that sets the type of information to be returned ('companies' or 'companies_files').
+If 'companies', it will return a dataframe with several information about companies, but without download links.}
 }
 \value{
 A dataframe with several information about Bovespa companies
 }
 \description{
 A csv file with information about available companies and time periods is downloaded from github and read.
-This file is updated periodically and manually by the author.
+This file is updated periodically and manually by the author. When run for the first time in a R session, a .RDATA file
+containing the output of the function is saved in tempdir() for caching.
 }
 \examples{
 

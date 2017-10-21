@@ -11,7 +11,7 @@ The package is available in CRAN (release version) and in Github (development ve
 
 ```
 # Release version in CRAN
-install.packages('GetDFPData') # not in CRAN yet
+install.packages('GetDFPData') 
 
 # Development version in Github
 devtools::install_github('msperlin/GetDFPData')

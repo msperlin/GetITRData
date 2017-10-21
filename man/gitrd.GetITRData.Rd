@@ -6,10 +6,12 @@
 \usage{
 gitrd.GetITRData(name.companies, first.date = Sys.Date() - 12 * 30,
   last.date = Sys.Date(), type.info = "individual",
-  inflation.index = "none", folder.out = tempdir(), be.quiet = FALSE)
+  periodicy.fin.report = "annual", inflation.index = "dollar",
+  max.levels = 3, folder.out = tempdir(), be.quiet = FALSE)
 }
 \arguments{
-\item{name.companies}{Official names of companies to get financial reports (e.g. 'PETROBRAS'). Names of companies can be found using function gitrd.get.info.companies()}
+\item{name.companies}{Official names of companies to get financial reports (e.g. 'ELETROPAULO METROPOLITANA EL.S.PAULO S.A').
+Names of companies can be found using function gitrd.search.company('nametolookfor') or gitrd.get.info.companies('companies')}
 
 \item{first.date}{First date (YYYY-MM-DD) to get data. Character or Date. E.g. first.date = '2010-01-01'.}
 
@@ -19,8 +21,12 @@ gitrd.GetITRData(name.companies, first.date = Sys.Date() - 12 * 30,
 length as name.companies. The individual type only includes financial statements from the company itself, while consolidated statements adds information
 about controlled companies}
 
-\item{inflation.index}{Set which inflation index to use for finding inflation adjusted values of all reports. Possible values: 'none' (default), 'IPCA' - main brazilian inflation index and 'dollar'.
-When using 'IPCA', the base date as set as the last date found in the inflation dataset.}
+\item{periodicy.fin.report}{The frequency of financial reports: 'annual' (default) or 'quarterly'}
+
+\item{inflation.index}{Sets the inflation index to use for finding inflation adjusted values of all reports. Possible values: 'dollar' (default) or 'IPCA', the brazilian main inflation index.
+When using 'IPCA', the base date is set as the last date found in the inflation dataset.}
+
+\item{max.levels}{Sets the maximum number of levels of accounting items in financial reports}
 
 \item{folder.out}{Folder where to download and manipulate the zip files. Default = tempdir()}
 
@@ -30,15 +36,14 @@ When using 'IPCA', the base date as set as the last date found in the inflation 
 A tibble (dataframe with lists) object with all gathered financial statements, with each company as a row in the tibble.
 }
 \description{
-Quarterly financial reports are downloaded from Bovespa for a combination of companies and time period. The downloaded
-zip file is read by a custom function, which outputs several information that are organized and structured by this function.
+Quarterly and annual financial reports are downloaded from B3 for a combination of companies and time period.
 The easist way to get started with gitrd.GetITRData is looking for the official name of traded companies using function gitrd.search.company('nametolookfor').
-Alternatively, you can use function gitrd.get.info.companies to import a dataframe with information for all available companies and time periods.
+Alternatively, you can use function gitrd.get.info.companies('companies') to import a dataframe with information for all available companies and time periods.
 }
 \examples{
 
 \dontrun{ #dontrun: keep cran check time short
-name.companies <- 'PETROBRAS'
+name.companies <- 'ELETROPAULO METROPOLITANA EL.S.PAULO S.A'
 first.date <- '2005-01-01'
 last.date <-  '2006-01-01'
 

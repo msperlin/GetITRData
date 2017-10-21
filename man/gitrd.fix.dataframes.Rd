@@ -4,15 +4,17 @@
 \alias{gitrd.fix.dataframes}
 \title{Fix dataframe for version issues and inflation measures (internal)}
 \usage{
-gitrd.fix.dataframes(df.in, inflation.index, df.inflation)
+gitrd.fix.dataframes(df.in, inflation.index, df.inflation, max.levels = 3)
 }
 \arguments{
 \item{df.in}{A dataframe with financial statements}
 
-\item{inflation.index}{Set which inflation index to use for finding inflation adjusted values of all reports. Possible values: 'none' (default), 'IPCA' - main brazilian inflation index and 'dollar'.
-When using 'IPCA', the base date as set as the last date found in the inflation dataset.}
+\item{inflation.index}{Sets the inflation index to use for finding inflation adjusted values of all reports. Possible values: 'dollar' (default) or 'IPCA', the brazilian main inflation index.
+When using 'IPCA', the base date is set as the last date found in the inflation dataset.}
 
 \item{df.inflation}{Dataframe with inflation data}
+
+\item{max.levels}{Sets the maximum number of levels of accounting items in financial reports}
 }
 \value{
 The fixed data.frame
@@ -26,7 +28,7 @@ Fix dataframe for version issues and inflation measures (internal)
 my.f <- system.file('extdata/ExampleReport_Petrobras.RData', package = 'GetITRData')
 load(my.f)
 
-df.assets <- df.reports$assets[[1]]
+df.assets <- df.reports$fr.assets[[1]]
 
 df.assets.fixed <- gitrd.fix.dataframes(df.assets,
                                         inflation.index = 'none',

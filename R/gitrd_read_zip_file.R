@@ -3,6 +3,7 @@
 #' @param my.zip.file Full path to zip file
 #' @param folder.to.unzip Folder to unzip files (default = tempdir())
 #' @param id.type The type of file structure ('after 2011' or 'before 2011')
+#' @param type.fin.report Peridodicy of fin data ('itr' - quarterly or 'dfp' - annual)
 #'
 #' @return A list with several dataframes containing financial statements
 #' @export
@@ -11,9 +12,12 @@
 #'
 #' my.f <- system.file('extdata/434_ARAC_2008-09-30.zip', package = 'GetITRData')
 #'
-#' my.l <- gitrd.read.zip.file(my.f, id.type = 'before 2011')
+#' my.l <- gitrd.read.zip.file(my.f, id.type = 'before 2011', type.fin.report = 'itr')
 #' print(my.l)
-gitrd.read.zip.file <- function(my.zip.file, folder.to.unzip = tempdir(), id.type) {
+gitrd.read.zip.file <- function(my.zip.file,
+                                folder.to.unzip = tempdir(),
+                                id.type,
+                                type.fin.report) {
 
   # sanity check
   if (tools::file_ext(my.zip.file) != 'zip') {
@@ -45,24 +49,24 @@ gitrd.read.zip.file <- function(my.zip.file, folder.to.unzip = tempdir(), id.typ
   utils::unzip(my.zip.file, exdir = rnd.folder.name, junkpaths = TRUE)
 
   # list files and check it
-  n.files <- list.files(rnd.folder.name)
+  my.files <- list.files(rnd.folder.name)
 
-  if (length(n.files) == 0) {
+  if (length(my.files) == 0) {
     #browser()
 
     file.remove(my.zip.file)
     stop(paste0('Zipped file contains 0 files. ',
-                'This could be a problem with the downloaded file. ',
+                'This is likelly a problem with the downloaded file. ',
                 'Try running the code again as the corrupted zip file was deleted and will be downloaded again.',
-                '\n\nIf it persists, simply remove the time period with problem.') )
+                '\n\nIf the problem persists, my suggestions is to remove the time period with problem.') )
   }
 
   if (id.type == 'after 2011') {
-    my.l <- gitrd.read.zip.file.type.1(rnd.folder.name, folder.to.unzip =folder.to.unzip)
+    my.l <- gitrd.read.zip.file.type.1(rnd.folder.name, folder.to.unzip, type.fin.report)
   }
 
   if (id.type == 'before 2011') {
-    my.l <- gitrd.read.zip.file.type.2(rnd.folder.name, folder.to.unzip = folder.to.unzip)
+    my.l <- gitrd.read.zip.file.type.2(rnd.folder.name, folder.to.unzip, type.fin.report)
   }
 
   return(my.l)
@@ -77,12 +81,11 @@ gitrd.read.zip.file <- function(my.zip.file, folder.to.unzip = tempdir(), id.typ
 #'
 #' @examples
 #' # no example (this functions not used directly)
-gitrd.read.zip.file.type.1 <- function(rnd.folder.name, folder.to.unzip = tempdir()) {
+gitrd.read.zip.file.type.1 <- function(rnd.folder.name, folder.to.unzip = tempdir(), type.fin.report) {
 
-
-
-  #company.reg.file <- paste0(rnd.folder.name,'/FormularioCadastral.xml')
-  company.reg.file <- file.path(rnd.folder.name,'FormularioDemonstracaoFinanceiraITR.xml')
+  company.reg.file <- switch(type.fin.report,
+                             'itr' = file.path(rnd.folder.name,'FormularioDemonstracaoFinanceiraITR.xml'),
+                             'dfp' = file.path(rnd.folder.name,'FormularioDemonstracaoFinanceiraDFP.xml') )
 
   xml_data <- XML::xmlToList(XML::xmlParse(company.reg.file))
 
@@ -96,18 +99,21 @@ gitrd.read.zip.file.type.1 <- function(rnd.folder.name, folder.to.unzip = tempdi
 
   #cat('\nReading', my.zip.file, '-', company.name, '|', as.character(date.docs))
 
-  zipped.file <- file.path(rnd.folder.name, list.files(rnd.folder.name, pattern = '*.itr')[1])
+  zipped.file <- switch(type.fin.report,
+                             'itr' = file.path(rnd.folder.name, list.files(rnd.folder.name, pattern = '*.itr')[1]),
+                             'dfp' = file.path(rnd.folder.name, list.files(rnd.folder.name, pattern = '*.dfp')[1]) )
+
   utils::unzip(zipped.file, exdir = rnd.folder.name)
 
-  company.itr.file <- file.path(rnd.folder.name, 'InfoFinaDFin.xml')
+  fin.report.file <- file.path(rnd.folder.name, 'InfoFinaDFin.xml')
 
-  if (!file.exists(company.itr.file)) {
-    stop('Cant find file', company.itr.file)
+  if (!file.exists(fin.report.file)) {
+    stop('Cant find file', fin.report.file)
   }
 
-  xml_data <- XML::xmlToList(XML::xmlParse(company.itr.file))
+  xml_data <- XML::xmlToList(XML::xmlParse(fin.report.file))
 
-  file.remove(company.itr.file)
+  file.remove(fin.report.file)
 
   # function to get individual DF
   my.fct <- function(x, type.df, info){
@@ -120,7 +126,12 @@ gitrd.read.zip.file.type.1 <- function(rnd.folder.name, folder.to.unzip = tempdi
       if (info == 'Descricao') return(x$DescricaoConta1)
       if (info == 'Valor') {
 
-        my.value <- as.numeric(c(x$ValorConta2, x$ValorConta3,x$ValorConta4))
+
+        my.value <- switch(type.fin.report,
+                           'itr' = as.numeric(c(x$ValorConta2, x$ValorConta3, x$ValorConta4)),
+                           'dfp' = as.numeric(c(x$ValorConta1, x$ValorConta2, x$ValorConta3,x$ValorConta4))
+                           )
+
         my.value <- my.value[my.value != 0]
         if (length(my.value)==0) {
           my.value <- 0
@@ -190,30 +201,41 @@ gitrd.read.zip.file.type.1 <- function(rnd.folder.name, folder.to.unzip = tempdi
 #'
 #' @examples
 #' # no example (this functions not used directly)
-gitrd.read.zip.file.type.2 <- function(rnd.folder.name, folder.to.unzip = tempdir()) {
+gitrd.read.zip.file.type.2 <- function(rnd.folder.name, folder.to.unzip = tempdir(), type.fin.report) {
+
 
   # get individual fin statements
-
   #my.f <- file.path(rnd.folder.name, '/ITRBPAE.001')
-  my.f <- list.files(rnd.folder.name, pattern = 'ITRBPA', full.names = T)
-  df.assets <- gitrd.read.fwf.file(my.f)
+
+  my.f <- switch(type.fin.report,
+                 'itr' = list.files(rnd.folder.name,'ITRBPAE', full.names = T),
+                 'dfp' = list.files(rnd.folder.name,'DFPBPAE', full.names = T))
+
+  df.assets <- gitrd.read.fwf.file(my.f, type.fin.report)
 
   #my.f <- paste0(rnd.folder.name,'/ITRBPPE.001')
-  my.f <- list.files(rnd.folder.name, pattern = 'ITRBPP', full.names = T)
-  df.liabilities <- gitrd.read.fwf.file(my.f)
+  my.f <- switch(type.fin.report,
+                 'itr' = list.files(rnd.folder.name, pattern = 'ITRBPP', full.names = T),
+                 'dfp' = list.files(rnd.folder.name, 'DFPBPPE', full.names = T) )
 
-  #my.f <- paste0(rnd.folder.name,'/ITRDEREE.001')
-  my.f <- list.files(rnd.folder.name, pattern = 'ITRDERE', full.names = T)
-  df.income <- gitrd.read.fwf.file(my.f)
+  df.liabilities <- gitrd.read.fwf.file(my.f, type.fin.report)
 
-  my.f <- list.files(rnd.folder.name, pattern = 'ITRDFCE', full.names = T)
 
+  my.f <- switch(type.fin.report,
+                 'itr' = list.files(rnd.folder.name, pattern = 'ITRDERE', full.names = T),
+                 'dfp' = list.files(rnd.folder.name, 'DFPDEREE', full.names = T) )
+  df.income <- gitrd.read.fwf.file(my.f, type.fin.report)
+
+
+  my.f <- switch(type.fin.report,
+                 'itr' = list.files(rnd.folder.name, pattern = 'ITRDFCE', full.names = T),
+                 'dfp' = list.files(rnd.folder.name, 'DFPDFCEE', full.names = T) )
   if (length(my.f) == 0) {
     df.cashflow <- data.frame(acc.desc  = NA,
                               acc.value = NA,
                               acc.number = NA)
   }else {
-    df.cashflow <- gitrd.read.fwf.file(my.f)
+    df.cashflow <- gitrd.read.fwf.file(my.f, type.fin.report)
   }
 
   l.individual.dfs <- list(df.assets = df.assets,
@@ -225,26 +247,34 @@ gitrd.read.zip.file.type.2 <- function(rnd.folder.name, folder.to.unzip = tempdi
   # get consolidated fin statements
 
   #my.f <- paste0(rnd.folder.name,'/ITRCBPAE.001')
-  my.f <- list.files(rnd.folder.name, pattern = 'ITRCBPA', full.names = T)
-  df.assets <- gitrd.read.fwf.file(my.f)
+  my.f <- switch(type.fin.report,
+                 'itr' = list.files(rnd.folder.name,'ITRCBPA', full.names = T),
+                 'dfp' = list.files(rnd.folder.name,'DFPCBPAE', full.names = T))
+  df.assets <- gitrd.read.fwf.file(my.f, type.fin.report)
 
-  #my.f <- paste0(rnd.folder.name,'/ITRCBPPE.001')
-  my.f <- list.files(rnd.folder.name, pattern = 'ITRCBPP', full.names = T)
-  df.liabilities <- gitrd.read.fwf.file(my.f)
 
-  #my.f <- paste0(rnd.folder.name,'/ITRCDERE.001')
-  my.f <- list.files(rnd.folder.name, pattern = 'ITRCDER', full.names = T)
-  df.income <- gitrd.read.fwf.file(my.f)
+  my.f <- switch(type.fin.report,
+                 'itr' = list.files(rnd.folder.name,'ITRCBPP', full.names = T),
+                 'dfp' = list.files(rnd.folder.name,'DFPCBPPE', full.names = T))
+  df.liabilities <- gitrd.read.fwf.file(my.f, type.fin.report)
 
-  my.f <- list.files(rnd.folder.name, pattern = 'ITRCDFCE', full.names = T)
 
+  my.f <- switch(type.fin.report,
+                 'itr' = list.files(rnd.folder.name,'ITRCDER', full.names = T),
+                 'dfp' = list.files(rnd.folder.name,'DFPCDERE', full.names = T))
+  df.income <- gitrd.read.fwf.file(my.f, type.fin.report)
+
+
+  my.f <- switch(type.fin.report,
+                 'itr' = list.files(rnd.folder.name,'ITRCDFCE', full.names = T),
+                 'dfp' = list.files(rnd.folder.name,'DFPCDFCEE', full.names = T))
 
   if (length(my.f) == 0) {
     df.cashflow <- data.frame(acc.desc  = NA,
                               acc.value = NA,
                               acc.number = NA)
   } else {
-    df.cashflow <- gitrd.read.fwf.file(my.f)
+    df.cashflow <- gitrd.read.fwf.file(my.f, type.fin.report)
   }
 
   l.consolidated.dfs<- list(df.assets = df.assets,

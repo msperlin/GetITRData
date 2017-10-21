@@ -1,18 +1,20 @@
 #' Downloads and reads financial reports from Bovespa
 #'
-#' Quarterly financial reports are downloaded from Bovespa for a combination of companies and time period. The downloaded
-#' zip file is read by a custom function, which outputs several information that are organized and structured by this function.
+#' Quarterly and annual financial reports are downloaded from B3 for a combination of companies and time period.
 #' The easist way to get started with gitrd.GetITRData is looking for the official name of traded companies using function gitrd.search.company('nametolookfor').
-#' Alternatively, you can use function gitrd.get.info.companies to import a dataframe with information for all available companies and time periods.
+#' Alternatively, you can use function gitrd.get.info.companies('companies') to import a dataframe with information for all available companies and time periods.
 #'
-#' @param name.companies Official names of companies to get financial reports (e.g. 'PETROBRAS'). Names of companies can be found using function gitrd.get.info.companies()
+#' @param name.companies Official names of companies to get financial reports (e.g. 'ELETROPAULO METROPOLITANA EL.S.PAULO S.A').
+#' Names of companies can be found using function gitrd.search.company('nametolookfor') or gitrd.get.info.companies('companies')
 #' @param first.date First date (YYYY-MM-DD) to get data. Character or Date. E.g. first.date = '2010-01-01'.
 #' @param last.date Last date (YYYY-MM-DD) to get data. Character or Date. E.g. last.date = '2017-01-01'.
 #' @param type.info Type of financial statements, 'individual' (default) or 'consolidated'. Argument can be a single value or a vector with the same
 #' length as name.companies. The individual type only includes financial statements from the company itself, while consolidated statements adds information
 #' about controlled companies
-#' @param inflation.index Set which inflation index to use for finding inflation adjusted values of all reports. Possible values: 'none' (default), 'IPCA' - main brazilian inflation index and 'dollar'.
-#' When using 'IPCA', the base date as set as the last date found in the inflation dataset.
+#' @param periodicy.fin.report The frequency of financial reports: 'annual' (default) or 'quarterly'
+#' @param inflation.index Sets the inflation index to use for finding inflation adjusted values of all reports. Possible values: 'dollar' (default) or 'IPCA', the brazilian main inflation index.
+#' When using 'IPCA', the base date is set as the last date found in the inflation dataset.
+#' @param max.levels Sets the maximum number of levels of accounting items in financial reports
 #' @param folder.out Folder where to download and manipulate the zip files. Default = tempdir()
 #' @param be.quiet Should the function output information about progress? TRUE (default) or FALSE
 #'
@@ -22,7 +24,7 @@
 #' @examples
 #'
 #' \dontrun{ #dontrun: keep cran check time short
-#' name.companies <- 'PETROBRAS'
+#' name.companies <- 'ELETROPAULO METROPOLITANA EL.S.PAULO S.A'
 #' first.date <- '2005-01-01'
 #' last.date <-  '2006-01-01'
 #'
@@ -34,7 +36,9 @@ gitrd.GetITRData <- function(name.companies,
                              first.date = Sys.Date()-12*30,
                              last.date = Sys.Date(),
                              type.info = 'individual',
-                             inflation.index = 'none',
+                             periodicy.fin.report = 'annual',
+                             inflation.index = 'dollar',
+                             max.levels = 3,
                              folder.out = tempdir(),
                              be.quiet = FALSE) {
 
@@ -54,15 +58,27 @@ gitrd.GetITRData <- function(name.companies,
 
   if (!dir.exists(folder.out)) dir.create(folder.out)
 
+  possible.values <- c('annual', 'quarterly')
+  if ( !(any(periodicy.fin.report %in% possible.values)) ){
+    stop('Input periodicy.fin.report should be "annual" or "quarterly"')
+  }
+
+  type.fin.report <- switch(periodicy.fin.report,
+                            'annual' = 'dfp',
+                            'quarterly' = 'itr')
+
   # check input inflation.index
-  possible.values <- c('none', 'IPCA', 'dollar')
+  possible.values <- c('IPCA', 'dollar')
   if ( !(any(inflation.index %in% possible.values)) ) {
     stop(paste0('Input inflation.index should be one of:\n' , paste0(possible.values, collapse = '\n') ) )
   }
 
+  if (max.levels < 1) {
+    stop('Input max.levels should be higher than one')
+  }
   # check internet
   if (!curl::has_internet()) {
-    stop('You need an internet connection to download files from Bovespa.')
+    stop('You need an active internet connection to download files from Bovespa.')
   }
 
   # get data from github
@@ -93,7 +109,7 @@ gitrd.GetITRData <- function(name.companies,
 
   df.to.process <- df.info[idx, ]
 
-  # remove duplicates and NA
+  # remove duplicates/NA and filter for type.data
   idx <- !duplicated(df.to.process[, c('id.company', 'id.date')])
   df.to.process <- df.to.process[idx, ]
 
@@ -103,13 +119,26 @@ gitrd.GetITRData <- function(name.companies,
   idx <- !is.na(df.to.process$name.company)
   df.to.process <- df.to.process[idx, ]
 
+  idx <- df.to.process$type.fin.report == type.fin.report
+  df.to.process <- df.to.process[idx, ]
+
+
   if (nrow(df.to.process) == 0){
     stop('Cannot find any dates related to companies in registry. You should try different dates and companies.')
   }
 
-  # msg
+  # msg to prompt
+  if (length(unique(type.info))==1){
+    msg.reach <- type.info[1]
+  } else {
+    # find most frequent
+    tbl <- sort(table(type.info), decreasing = TRUE)
+    msg.reach <- paste0('mostly ', names(tbl)[1])
+  }
+
   cat(paste0('\n\nDownloading data for ', length(name.companies), ' companies',
-             '\nType of financial statements: ', paste0(type.info, collapse = '\t'),
+             '\nReach of financial reports: ', msg.reach,
+             '\nPeriodicy of financial reports: ', periodicy.fin.report, ' (',type.fin.report, ' system)',
              '\nFirst Date: ',first.date,
              '\nLaste Date: ',last.date,
              '\nInflation index: ', inflation.index,
@@ -118,20 +147,13 @@ gitrd.GetITRData <- function(name.companies,
   cat(paste0('Downloading ', inflation.index, ' data using BETS'))
 
   # download inflation data using BETS
-  if (inflation.index == 'IPCA') {
-    id.ipca <- '433'
-    df.inflation <- BETS::BETS.get(code = id.ipca,
-                                   from = as.character(first.date),
-                                   to = as.character(last.date), data.frame = T )
-  }
+  id.inflation <- switch(inflation.index,
+                         'IPCA' = '433',
+                         'dollar' = '1')
 
-  if (inflation.index == 'dollar') {
-    id.ipca <- '1'
-    df.inflation <- BETS::BETS.get(code = id.ipca,
-                                   from = as.character(first.date),
-                                   to = as.character(last.date), data.frame = T )
-
-  }
+  df.inflation <- BETS::BETS.get(code = id.inflation,
+                                 from = as.character(first.date),
+                                 to = as.character(last.date), data.frame = T )
 
   cat('\tDone\n\n')
 
@@ -144,17 +166,17 @@ gitrd.GetITRData <- function(name.companies,
 
   # warn user for lack of cash flow data
   if (any(df.to.process$id.date < as.Date('2009-01-01'))) {
-    cat('\nWARNING: For quarters before 2009, the cash flow statements are not available\n\n')
+    cat('\nWARNING: For data before 2009, the cash flow statements are not available\n\n')
   }
 
   # start processing
-  cat(paste0('Starting processing stage:' ) )
+  cat(paste0('Inputs looks good! Downloading data:' ) )
 
   for (i.company in unique(df.to.process$name.company) ) {
     temp.df <- df.to.process[df.to.process$name.company == i.company, ]
     cat(paste0('\n', i.company) )
 
-    cat(paste0('\n\tAvailable quarters: ', paste0(temp.df$id.date, collapse = '\t')) )
+    cat(paste0('\n\tAvailable periods: ', paste0(temp.df$id.date, collapse = '\t')) )
 
   }
 
@@ -191,11 +213,12 @@ gitrd.GetITRData <- function(name.companies,
       }
 
       if (!be.quiet) {
-        cat(paste0('\nProcessing ', i.company, ', Quarter = ', i.date  ) )
+        cat(paste0('\nProcessing ', i.company, ', Date = ', i.date  ) )
       }
 
 
       dl.link <- temp.df2$dl.link
+      type.fin.report <- temp.df2$type.fin.report
 
       # fix file names for latin characters
       my.filename <- iconv(temp.df2$name.company, to = 'ASCII//TRANSLIT')
@@ -221,7 +244,7 @@ gitrd.GetITRData <- function(name.companies,
 
       suppressWarnings({
         l.out <- gitrd.read.zip.file(my.zip.file = temp.file, folder.to.unzip = tempdir(),
-                                     id.type = temp.df2$id.type )
+                                     id.type = temp.df2$id.type, type.fin.report)
       })
 
       if (type.info.now == 'individual') {
@@ -250,24 +273,24 @@ gitrd.GetITRData <- function(name.companies,
     }
 
     # clean up dataframes before saving
-    df.assets <-      gitrd.fix.dataframes(stats::na.omit(df.assets), inflation.index, df.inflation)
-    df.liabilities <- gitrd.fix.dataframes(stats::na.omit(df.liabilities), inflation.index, df.inflation)
-    df.income <-      gitrd.fix.dataframes(stats::na.omit(df.income), inflation.index, df.inflation)
-    df.cashflow <-    gitrd.fix.dataframes(stats::na.omit(df.cashflow), inflation.index, df.inflation)
+    df.assets <-      gitrd.fix.dataframes(stats::na.omit(df.assets), inflation.index, df.inflation,max.levels)
+    df.liabilities <- gitrd.fix.dataframes(stats::na.omit(df.liabilities), inflation.index, df.inflation,max.levels)
+    df.income <-      gitrd.fix.dataframes(stats::na.omit(df.income), inflation.index, df.inflation, max.levels)
+    df.cashflow <-    gitrd.fix.dataframes(stats::na.omit(df.cashflow), inflation.index, df.inflation, max.levels)
 
     tibble.company <- tibble::tibble(company.name = i.company,
                                      company.code = temp.df$id.company[1],
                                      type.info = type.info.now,
                                      min.date = min(temp.df$id.date),
                                      max.date = max(temp.df$id.date),
-                                     n.quarters = length(temp.df$id.date),
+                                     n.periods = length(temp.df$id.date),
                                      stock.holders = list(df.stock.holders),
                                      stock.composition = list(df.stock.composition),
-                                     dividends = list(df.dividends),
-                                     assets = list(df.assets),
-                                     liabilities = list(df.liabilities),
-                                     income = list(df.income),
-                                     cashflow = list(df.cashflow))
+                                     dividends.history = list(df.dividends),
+                                     fr.assets = list(df.assets),
+                                     fr.liabilities = list(df.liabilities),
+                                     fr.income = list(df.income),
+                                     fr.cashflow = list(df.cashflow))
 
     tibble.out <- dplyr::bind_rows(tibble.out, tibble.company)
 

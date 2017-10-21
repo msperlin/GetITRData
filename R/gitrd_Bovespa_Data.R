@@ -1,6 +1,6 @@
-#' Reads information for a company from Bovespa site
+#' Reads information for a company from B3 site
 #'
-#' Given a CVM code, this function scrapes information from the main page of Bovespa.
+#' Given a CVM code, this function scrapes information from the company page.
 #'
 #' @param my.id A CVM id
 #' @return A list with several dataframes
@@ -55,8 +55,8 @@ gitrd.get.bovespa.data <- function(my.id) {
     df.stock.composition$number.of.stocks <- fix.num.cols(df.stock.composition$number.of.stocks)
 
   } else {
-    df.stock.holders <- NA
-    df.stock.composition <- NA
+    df.stock.holders <- data.frame()
+    df.stock.composition <- data.frame()
   }
 
   # cash dividends
@@ -84,7 +84,7 @@ gitrd.get.bovespa.data <- function(my.id) {
     df.dividends$dividend.by.price <-   fix.num.cols(df.dividends$dividend.by.price)
 
   } else {
-    df.dividends <- NA
+    df.dividends <- data.frame()
   }
 
   l.out <- list(df.stock.composition = df.stock.composition,

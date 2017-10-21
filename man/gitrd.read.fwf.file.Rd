@@ -4,10 +4,12 @@
 \alias{gitrd.read.fwf.file}
 \title{Reads FWF file from bovespa (internal)}
 \usage{
-gitrd.read.fwf.file(my.f)
+gitrd.read.fwf.file(my.f, type.fin.report)
 }
 \arguments{
 \item{my.f}{File to be read}
+
+\item{type.fin.report}{Peridodicy of fin data ('itr' - quarterly or 'dfp' - annual)}
 }
 \value{
 A dataframe with data
@@ -19,5 +21,5 @@ Reads FWF file from bovespa (internal)
 
 my.f <- system.file('extdata/ITRBPAE.001', package = 'GetITRData')
 
-df.assets <- gitrd.read.fwf.file(my.f)
+df.assets <- gitrd.read.fwf.file(my.f, type.fin.report = 'itr')
 }
