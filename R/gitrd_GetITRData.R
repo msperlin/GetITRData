@@ -216,6 +216,19 @@ gitrd.GetITRData <- function(name.companies,
         cat(paste0('\nProcessing ', i.company, ', Date = ', i.date  ) )
       }
 
+      # get stock data (IN DEV)
+      company.tickers <- stringr::str_split(temp.df2$tickers, ';')[[1]]
+
+      #browser()
+      if (is.na(company.tickers)) {
+
+
+      } else {
+      #  stock.data <- BatchGetSymbols::BatchGetSymbols(tickers = paste0(company.tickers,'.SA'),
+      #                                                 first.date = as.Date(i.date) - 10,
+      #                                                 last.date = as.Date(i.date) +10)
+      }
+
 
       dl.link <- temp.df2$dl.link
       type.fin.report <- temp.df2$type.fin.report
@@ -285,7 +298,7 @@ gitrd.GetITRData <- function(name.companies,
                                      max.date = max(temp.df$id.date),
                                      n.periods = length(temp.df$id.date),
                                      stock.holders = list(df.stock.holders),
-                                     stock.composition = list(df.stock.composition),
+                                     #stock.composition = list(df.stock.composition), THIS IS WRONG!
                                      dividends.history = list(df.dividends),
                                      fr.assets = list(df.assets),
                                      fr.liabilities = list(df.liabilities),
