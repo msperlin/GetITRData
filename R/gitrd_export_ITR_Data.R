@@ -103,11 +103,11 @@ gitrd.export.ITR.data <- function(data.in,
       out.dividends <- temp.df$dividends.history[[1]]
     }
 
-    if (length(temp.df$stock.holders[[1]]) == 0) {
+    if (length(temp.df$history.stock.holders[[1]]) == 0) {
       cat('\n\tFound NA for current stock holders. Skipping it..')
       out.stock.holders = data.frame(col = 'NO DATA')
     } else {
-      out.stock.holders <- temp.df$stock.holders[[1]]
+      out.stock.holders <- temp.df$history.stock.holders[[1]]
     }
 
     # copy financial reports

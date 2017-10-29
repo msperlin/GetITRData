@@ -41,7 +41,7 @@ gitrd.get.inflation.data <- function(inflation.index) {
                       'IPCA' = 'https://raw.githubusercontent.com/msperlin/GetitrData_auxiliary/master/Inflation-IPCA.csv',
                       'dollar' = 'https://raw.githubusercontent.com/msperlin/GetitrData_auxiliary/master/Inflation-dollar.csv')
 
-  df.inflation <- readr::read_csv(link.file, col_types = my.cols, col_names = '')
+  df.inflation <- readr::read_csv(link.file, col_types = my.cols)
 
   cat('\n\tCaching inflation RDATA into tempdir()')
   save('df.inflation', file = my.f.rdata)

@@ -13,7 +13,7 @@
 #' about controlled companies
 #' @param periodicy.fin.report The frequency of financial reports: 'annual' (default) or 'quarterly'
 #' @param inflation.index Sets the inflation index to use for finding inflation adjusted values of all reports. Possible values: 'dollar' (default) or 'IPCA', the brazilian main inflation index.
-#' When using 'IPCA', the base date is set as the last date found in the inflation dataset.
+#' When using 'IPCA', the base date is set as the last date found in itr/dfp dataset.
 #' @param max.levels Sets the maximum number of levels of accounting items in financial reports
 #' @param folder.out Folder where to download and manipulate the zip files. Default = tempdir()
 #' @param be.quiet Should the function output information about progress? TRUE (default) or FALSE
@@ -119,9 +119,6 @@ gitrd.GetITRData <- function(name.companies,
   idx <- !is.na(df.to.process$name.company)
   df.to.process <- df.to.process[idx, ]
 
-  #idx <- df.company.date$type.fin.report == type.fin.report
-  #df.to.process <- df.to.process[idx, ]
-
   if (nrow(df.to.process) == 0){
     stop('Cannot find any dates related to companies in registry. You should try different dates and companies.')
   }
@@ -186,8 +183,6 @@ gitrd.GetITRData <- function(name.companies,
       (df.to.process$type.fin.report == type.fin.report)
     temp.df <- df.to.process[idx,  ]
 
-
-
     # get data from Bovespa site
     my.id <- temp.df$id.company[1]
 
@@ -196,6 +191,7 @@ gitrd.GetITRData <- function(name.companies,
     current.stock.holders <- l.out.bov$df.stock.holders
     current.stock.composition <- l.out.bov$df.stock.composition
     df.dividends <- l.out.bov$df.dividends
+    company.segment <- l.out.bov$company.segment
 
     type.info.now <- type.info[which(i.company == name.companies)]
     df.assets <- data.frame()
@@ -350,6 +346,7 @@ gitrd.GetITRData <- function(name.companies,
                                      min.date = min(temp.df$id.date),
                                      max.date = max(temp.df$id.date),
                                      n.periods = length(temp.df$id.date),
+                                     company.segment = company.segment,
                                      current.stockholders = list(current.stock.holders),
                                      current.stock.composition = list(current.stock.composition),
                                      dividends.history = list(df.dividends),

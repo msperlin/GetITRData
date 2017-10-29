@@ -44,6 +44,7 @@ gitrd.get.info.companies <- function(type.data = 'companies_files') {
     main.sector = readr::col_character(),
     sub.sector = readr::col_character(),
     segment = readr::col_character(),
+    listing.segment = readr::col_character(),
     tickers = readr::col_character(),
     id.file = readr::col_integer(),
     dl.link = readr::col_character(),
@@ -71,7 +72,7 @@ gitrd.get.info.companies <- function(type.data = 'companies_files') {
 
   if (type.data == 'companies') {
 
-    my.cols <- my.cols <- c("name.company","id.company", "situation",
+    my.cols <- my.cols <- c("name.company","id.company", "situation", "listing.segment",
                             "main.sector", "sub.sector", "segment", "tickers")
     df.info.agg <- unique(df.info[, my.cols])
 

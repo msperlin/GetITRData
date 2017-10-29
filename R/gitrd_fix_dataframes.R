@@ -71,6 +71,9 @@ gitrd.fix.dataframes <- function(df.in, inflation.index, df.inflation, max.level
     # get accumulated inflation index
     df.inflation$cum <- cumprod(df.inflation$Value/100 +1)
 
+    # filter df.inflation for dates
+    df.inflation <- df.inflation[df.inflation$Date<=max(df.in$ref.date), ]
+
     # use base date as last available date in df.inflation
     base.value <- df.inflation$cum[which.max(df.inflation$Date)]
     df.inflation$inflator <- df.inflation$cum/base.value

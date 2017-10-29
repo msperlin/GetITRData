@@ -33,9 +33,7 @@ gitrd.get.bovespa.data <- function(my.id) {
 
   if (length(data.out) !=0 ) {
 
-
-
-    # Stockholders data
+    # current stockholders data
 
     idx <- sapply(data.out, FUN = function(df.in) any(colnames(df.in) == '%ON'))
     tbl.idx <- which(idx)
@@ -46,13 +44,37 @@ gitrd.get.bovespa.data <- function(my.id) {
     df.stock.holders$PN.percent <- fix.num.cols(df.stock.holders$PN.percent)
     df.stock.holders$total.percent <- fix.num.cols(df.stock.holders$total.percent)
 
-    # total stocks
+    # current total stocks
     idx <- sapply(data.out, FUN = function(df.in) any(colnames(df.in) == 'V1'))
     tbl.idx <- which(idx)
 
     df.stock.composition <- data.out[[tbl.idx]]
     names(df.stock.composition) <- c('type.stock', 'number.of.stocks')
     df.stock.composition$number.of.stocks <- fix.num.cols(df.stock.composition$number.of.stocks)
+
+    # current listing segments
+
+    my.html <- paste0(readLines(my.link, encoding = 'Latin1'), collapse = '\n')
+
+    # build dict
+    my.dict <- data.frame(segments.id = c('Bovespa Mais',
+                                          'Bovespa Mais - Level 2',
+                                          'Novo Mercado',
+                                          'Corporate Governance - Level 2',
+                                          'Corporate Governance - Level 1'),
+                          pic.file = c('InfEmpSeloBovespaMaisBrasil.png',
+                                       'img_logo-bovmaisn2.png',
+                                       'InfEmpLogoNovoMercado.png',
+                                       'InfEmpLogoMercadoNivel2.png',
+                                       'InfEmpLogoMercadoNivel1.png'), stringsAsFactors = F )
+
+    segment.test <- sapply(X = my.dict$pic.file, FUN = function(x) return(stringr::str_detect(my.html, x)) )
+
+    if (any(segment.test)) {
+      company.segment <- my.dict$segments.id[which(segment.test)]
+    } else {
+      company.segment <- 'None'
+    }
 
   } else {
     df.stock.holders <- data.frame()
@@ -89,7 +111,8 @@ gitrd.get.bovespa.data <- function(my.id) {
 
   l.out <- list(df.stock.composition = df.stock.composition,
                 df.stock.holders = df.stock.holders,
-                df.dividends = df.dividends)
+                df.dividends = df.dividends,
+                company.segment = company.segment)
 
   return(l.out)
 
