@@ -69,6 +69,19 @@ gitrd.read.zip.file <- function(my.zip.file,
     my.l <- gitrd.read.zip.file.type.2(rnd.folder.name, folder.to.unzip, type.fin.report)
   }
 
+  # check for empty dfs
+  my.fct <- function(df.in) {
+    if (nrow(df.in)==0) {
+      df.out <- data.frame(acc.number = NA, acc.desc = NA, acc.value = NA)
+    } else {
+      df.out <- df.in
+    }
+    return(df.out)
+  }
+
+  my.l$cons.dfs <- lapply(my.l$cons.dfs, my.fct)
+  my.l$ind.dfs  <- lapply(my.l$ind.dfs , my.fct)
+
   return(my.l)
 }
 

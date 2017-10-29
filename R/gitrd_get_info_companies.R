@@ -49,6 +49,7 @@ gitrd.get.info.companies <- function(type.data = 'companies_files') {
     dl.link = readr::col_character(),
     id.date = readr::col_date(),
     id.type = readr::col_character(),
+    type.fin.report = readr::col_character(),
     situation = readr::col_character()
   )
 

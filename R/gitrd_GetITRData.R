@@ -82,7 +82,7 @@ gitrd.GetITRData <- function(name.companies,
   }
 
   # get data from github
-  df.info <- gitrd.get.info.companies()
+  df.info <- gitrd.get.info.companies(type.data = 'companies_files')
   unique.names <- unique(df.info$name.company)
 
   idx <- !(name.companies %in% unique.names)
@@ -110,7 +110,7 @@ gitrd.GetITRData <- function(name.companies,
   df.to.process <- df.info[idx, ]
 
   # remove duplicates/NA and filter for type.data
-  idx <- !duplicated(df.to.process[, c('id.company', 'id.date')])
+  idx <- !duplicated(df.to.process[, c('id.company', 'id.date', 'type.fin.report')])
   df.to.process <- df.to.process[idx, ]
 
   idx <- !is.na(df.to.process$id.company)
@@ -119,9 +119,8 @@ gitrd.GetITRData <- function(name.companies,
   idx <- !is.na(df.to.process$name.company)
   df.to.process <- df.to.process[idx, ]
 
-  idx <- df.to.process$type.fin.report == type.fin.report
-  df.to.process <- df.to.process[idx, ]
-
+  #idx <- df.company.date$type.fin.report == type.fin.report
+  #df.to.process <- df.to.process[idx, ]
 
   if (nrow(df.to.process) == 0){
     stop('Cannot find any dates related to companies in registry. You should try different dates and companies.')
@@ -137,23 +136,18 @@ gitrd.GetITRData <- function(name.companies,
   }
 
   cat(paste0('\n\nDownloading data for ', length(name.companies), ' companies',
-             '\nReach of financial reports: ', msg.reach,
+             '\nType of financial reports: ', msg.reach,
              '\nPeriodicy of financial reports: ', periodicy.fin.report, ' (',type.fin.report, ' system)',
              '\nFirst Date: ',first.date,
              '\nLaste Date: ',last.date,
              '\nInflation index: ', inflation.index,
              '\n\n') )
 
-  cat(paste0('Downloading ', inflation.index, ' data using BETS'))
+  cat(paste0('Downloading inflation data' ))
 
   # download inflation data using BETS
-  id.inflation <- switch(inflation.index,
-                         'IPCA' = '433',
-                         'dollar' = '1')
 
-  df.inflation <- BETS::BETS.get(code = id.inflation,
-                                 from = as.character(first.date),
-                                 to = as.character(last.date), data.frame = T )
+  df.inflation <- gitrd.get.inflation.data(inflation.index)
 
   cat('\tDone\n\n')
 
@@ -170,10 +164,12 @@ gitrd.GetITRData <- function(name.companies,
   }
 
   # start processing
-  cat(paste0('Inputs looks good! Downloading data:' ) )
+  cat(paste0('Inputs looking good! Starting download of files:\n' ) )
 
   for (i.company in unique(df.to.process$name.company) ) {
-    temp.df <- df.to.process[df.to.process$name.company == i.company, ]
+    idx <- (df.to.process$name.company == i.company)&
+      (df.to.process$type.fin.report == type.fin.report)
+    temp.df <- df.to.process[idx, ]
     cat(paste0('\n', i.company) )
 
     cat(paste0('\n\tAvailable periods: ', paste0(temp.df$id.date, collapse = '\t')) )
@@ -186,15 +182,19 @@ gitrd.GetITRData <- function(name.companies,
 
   for (i.company in unique(df.to.process$name.company)) {
 
-    temp.df <- df.to.process[df.to.process$name.company == i.company,  ]
+    idx <- (df.to.process$name.company == i.company)&
+      (df.to.process$type.fin.report == type.fin.report)
+    temp.df <- df.to.process[idx,  ]
+
+
 
     # get data from Bovespa site
     my.id <- temp.df$id.company[1]
 
     l.out.bov <- gitrd.get.bovespa.data(my.id)
 
-    df.stock.holders <- l.out.bov$df.stock.holders
-    df.stock.composition <- l.out.bov$df.stock.composition
+    current.stock.holders <- l.out.bov$df.stock.holders
+    current.stock.composition <- l.out.bov$df.stock.composition
     df.dividends <- l.out.bov$df.dividends
 
     type.info.now <- type.info[which(i.company == name.companies)]
@@ -202,6 +202,8 @@ gitrd.GetITRData <- function(name.companies,
     df.liabilities <- data.frame()
     df.income <- data.frame()
     df.cashflow <- data.frame()
+    df.fre.stock.holders <- data.frame()
+    df.fre.capital <- data.frame()
     for (i.date in as.character(temp.df$id.date) ) {
 
       temp.df2 <- temp.df[temp.df$id.date == i.date,  ]
@@ -216,20 +218,8 @@ gitrd.GetITRData <- function(name.companies,
         cat(paste0('\nProcessing ', i.company, ', Date = ', i.date  ) )
       }
 
-      # get stock data (IN DEV)
-      company.tickers <- stringr::str_split(temp.df2$tickers, ';')[[1]]
 
-      #browser()
-      if (is.na(company.tickers)) {
-
-
-      } else {
-      #  stock.data <- BatchGetSymbols::BatchGetSymbols(tickers = paste0(company.tickers,'.SA'),
-      #                                                 first.date = as.Date(i.date) - 10,
-      #                                                 last.date = as.Date(i.date) +10)
-      }
-
-
+      # get dfp/itr data
       dl.link <- temp.df2$dl.link
       type.fin.report <- temp.df2$type.fin.report
 
@@ -242,10 +232,12 @@ gitrd.GetITRData <- function(name.companies,
                                                i.date, '.zip') )
 
 
+      cat(paste0('\n\tAcessing ', type.fin.report, ' data') )
+
       if (file.exists(temp.file)) {
-        cat('\tfile exists (no dl)')
+        cat(' | file exists (no dl)')
       } else {
-        cat('\tDownloading')
+        cat(' | downloading file')
 
         utils::download.file(url = dl.link,
                              destfile = temp.file,
@@ -253,7 +245,7 @@ gitrd.GetITRData <- function(name.companies,
                              mode = 'wb')
       }
 
-      cat(' | Reading file')
+      cat(' | reading file')
 
       suppressWarnings({
         l.out <- gitrd.read.zip.file(my.zip.file = temp.file, folder.to.unzip = tempdir(),
@@ -267,6 +259,7 @@ gitrd.GetITRData <- function(name.companies,
       if (type.info.now == 'consolidated') {
         out.df <- l.out$cons.dfs
       }
+
 
       # set some cols for long format
       out.df$df.assets$ref.date <- as.Date(i.date)
@@ -283,6 +276,66 @@ gitrd.GetITRData <- function(name.companies,
       df.income <- rbind(df.income, out.df$df.income)
       df.cashflow <- rbind(df.cashflow, out.df$df.cashflow)
 
+      # get data from FRE
+
+      cat(paste0('\n\tAcessing fre data') )
+
+      idx <- (df.to.process$name.company == i.company)&
+        (df.to.process$type.fin.report == 'fre')&
+        (df.to.process$id.date == temp.df2$id.date)
+
+      temp.df.fre <- df.to.process[idx,  ]
+
+      if (nrow(temp.df.fre) == 0) {
+        cat('\n\t\tNo FRE file available..')
+
+        next()
+
+      }
+
+      temp.file = file.path(folder.out, paste0('FRE_', temp.df2$id.company, '_',
+                                               stringr::str_sub(my.filename,1,4), '_',
+                                               i.date, '.zip') )
+
+
+      dl.link <- temp.df.fre$dl.link
+
+      if (file.exists(temp.file)) {
+        cat(' | file exists (no dl)')
+      } else {
+        cat(' | downloading file')
+
+        utils::download.file(url = dl.link,
+                             destfile = temp.file,
+                             quiet = T,
+                             mode = 'wb')
+      }
+
+      cat(' | reading file')
+
+      l.out.FRE <- gitrd.read.fre.zip.file(my.zip.file = temp.file,
+                                           folder.to.unzip = tempdir(),
+                                           l.other.info = list(company.name = temp.df2$name.company,
+                                                               ref.date = temp.df2$id.date))
+
+      # set new cols and fix order
+      old.names <- names(l.out.FRE$df.stockholders)
+      l.out.FRE$df.stockholders$name.company <- temp.df2$name.company
+      l.out.FRE$df.stockholders$id.date <- temp.df2$id.date
+
+      my.cols <- c('name.company', 'id.date', old.names)
+      l.out.FRE$df.stockholders <- l.out.FRE$df.stockholders[ ,my.cols]
+
+      # set new cols and fix order
+      old.names <- names(l.out.FRE$df.capital)
+      l.out.FRE$df.capital$name.company <- temp.df2$name.company
+      l.out.FRE$df.capital$id.date <- temp.df2$id.date
+
+      my.cols <- c('name.company', 'id.date', old.names)
+      l.out.FRE$df.capital <- l.out.FRE$df.capital[ ,my.cols]
+
+      df.fre.stock.holders <- rbind(df.fre.stock.holders, l.out.FRE$df.stockholders)
+      df.fre.capital <- rbind(df.fre.capital, l.out.FRE$df.capital)
     }
 
     # clean up dataframes before saving
@@ -297,13 +350,15 @@ gitrd.GetITRData <- function(name.companies,
                                      min.date = min(temp.df$id.date),
                                      max.date = max(temp.df$id.date),
                                      n.periods = length(temp.df$id.date),
-                                     stock.holders = list(df.stock.holders),
-                                     #stock.composition = list(df.stock.composition), THIS IS WRONG!
+                                     current.stockholders = list(current.stock.holders),
+                                     current.stock.composition = list(current.stock.composition),
                                      dividends.history = list(df.dividends),
                                      fr.assets = list(df.assets),
                                      fr.liabilities = list(df.liabilities),
                                      fr.income = list(df.income),
-                                     fr.cashflow = list(df.cashflow))
+                                     fr.cashflow = list(df.cashflow),
+                                     history.stock.holders = list(df.fre.stock.holders),
+                                     history.capital = list(df.fre.capital) )
 
     tibble.out <- dplyr::bind_rows(tibble.out, tibble.company)
 
