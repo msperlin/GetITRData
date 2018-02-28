@@ -2,8 +2,7 @@
 #'
 #' @param my.zip.file Full path to zip file
 #' @param folder.to.unzip Folder to unzip files (default = tempdir())
-#' @param id.type The type of file structure ('after 2011' or 'before 2011')
-#' @param type.fin.report Peridodicy of fin data ('itr' - quarterly or 'dfp' - annual)
+#' @param l.other.info Other information as a list
 #'
 #' @return A list with several dataframes containing financial statements
 #' @export

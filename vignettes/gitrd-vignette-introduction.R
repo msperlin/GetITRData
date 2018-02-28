@@ -7,33 +7,35 @@
 
 ## ------------------------------------------------------------------------
 library(GetITRData)
+library(tibble)
 
 gitrd.search.company('petrobras')
 
+## ------------------------------------------------------------------------
+df.info <- gitrd.get.info.companies(type.data = 'companies')
+
+glimpse(df.info)
 
 ## ------------------------------------------------------------------------
-df.info <- gitrd.get.info.companies()
-
-str(df.info)
-
-## ------------------------------------------------------------------------
-name.companies <- 'PETROBRAS'
-first.date <- '2005-01-01'
+name.companies <- 'PETRÓLEO BRASILEIRO  S.A.  - PETROBRAS'
+first.date <- '2004-01-01'
 last.date  <- '2006-01-01'
 type.statements <- 'individual'
+periodicy.fin.report <- 'annual'
 
 df.reports <- gitrd.GetITRData(name.companies = name.companies, 
+                               periodicy.fin.report = periodicy.fin.report, 
                                first.date = first.date,
                                last.date = last.date,
                                type.info = type.statements)
 
 ## ------------------------------------------------------------------------
-str(df.reports)
+glimpse(df.reports)
 
 ## ------------------------------------------------------------------------
-df.income.long <- df.reports$income[[1]]
+df.income.long <- df.reports$fr.income[[1]]
 
-str(df.income.long)
+glimpse(df.income.long)
 
 ## ------------------------------------------------------------------------
 df.income.wide <- gitrd.convert.to.wide(df.income.long)
@@ -41,24 +43,26 @@ df.income.wide <- gitrd.convert.to.wide(df.income.long)
 knitr::kable(df.income.wide )
 
 ## ------------------------------------------------------------------------
-set.seed(5)
+set.seed(2)
 my.companies <- sample(unique(df.info$name.company), 5)
 
-first.date <- '2005-01-01'
-last.date  <- '2006-01-01'
+first.date <- '2008-01-01'
+last.date  <- '2010-01-01'
 type.statements <- 'individual'
+periodicy.fin.report <- 'annual'
 
 df.reports <- gitrd.GetITRData(name.companies = my.companies, 
-                                  first.date = first.date,
-                                  last.date = last.date,
-                                  type.info = type.statements)
+                               periodicy.fin.report = periodicy.fin.report,
+                               first.date = first.date,
+                               last.date = last.date,
+                               type.info = type.statements)
 
 ## ------------------------------------------------------------------------
-head(df.reports )
+glimpse(df.reports)
 
 ## ------------------------------------------------------------------------
-df.assets <- do.call(what = rbind, args = df.reports$assets)
-df.liabilities <- do.call(what = rbind, args = df.reports$liabilities)
+df.assets <- do.call(what = rbind, args = df.reports$fr.assets)
+df.liabilities <- do.call(what = rbind, args = df.reports$fr.liabilities)
 
 df.assets.liabilities <- rbind(df.assets, df.liabilities)
 

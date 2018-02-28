@@ -1,3 +1,7 @@
+### Version 0.7 (2018-02-28)
+
+- fixed bug in vignette
+
 ### Version 0.6 (2017-10-21)
 
 - fixed bug with NA dates and names of companies

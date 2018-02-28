@@ -191,7 +191,6 @@ gitrd.GetITRData <- function(name.companies,
     current.stock.holders <- l.out.bov$df.stock.holders
     current.stock.composition <- l.out.bov$df.stock.composition
     df.dividends <- l.out.bov$df.dividends
-    company.segment <- l.out.bov$company.segment
 
     type.info.now <- type.info[which(i.company == name.companies)]
     df.assets <- data.frame()
@@ -346,8 +345,6 @@ gitrd.GetITRData <- function(name.companies,
                                      min.date = min(temp.df$id.date),
                                      max.date = max(temp.df$id.date),
                                      n.periods = length(temp.df$id.date),
-                                     company.segment = company.segment,
-                                     current.stockholders = list(current.stock.holders),
                                      current.stock.composition = list(current.stock.composition),
                                      dividends.history = list(df.dividends),
                                      fr.assets = list(df.assets),

@@ -1,6 +1,6 @@
 Package: GetITRData
 Title: Reading Financial Reports from Bovespa's ITR System
-Version: 0.6
+Version: 0.7
 Date: 2017-10-21
 Authors@R: person("Marcelo", "Perlin", email = "marceloperlin@gmail.com", role = c("aut", "cre"))
 Description: Reads quarterly and annual financial reports including assets, liabilities, income and cash flow statements from Bovespa's ITR (informacoes trimestrais) system <http://www.bmfbovespa.com.br/en_us/products/listed-equities-and-derivatives/equities/listed-companies.htm>.

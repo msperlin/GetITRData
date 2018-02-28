@@ -24,7 +24,7 @@ about controlled companies}
 \item{periodicy.fin.report}{The frequency of financial reports: 'annual' (default) or 'quarterly'}
 
 \item{inflation.index}{Sets the inflation index to use for finding inflation adjusted values of all reports. Possible values: 'dollar' (default) or 'IPCA', the brazilian main inflation index.
-When using 'IPCA', the base date is set as the last date found in the inflation dataset.}
+When using 'IPCA', the base date is set as the last date found in itr/dfp dataset.}
 
 \item{max.levels}{Sets the maximum number of levels of accounting items in financial reports}
 

@@ -35,7 +35,6 @@ library(GetITRData)
 library(tibble)
 
 gitrd.search.company('petrobras')
-
 ```
 
 Its official name in Bovespa records is `PETRÓLEO BRASILEIRO  S.A.  - PETROBRAS`. Data for quarterly and annual statements are available from 1998 to 2017. The situation of the company, active or canceled, is also given. This helps verifying the availability of data.

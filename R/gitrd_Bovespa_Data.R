@@ -111,8 +111,7 @@ gitrd.get.bovespa.data <- function(my.id) {
 
   l.out <- list(df.stock.composition = df.stock.composition,
                 df.stock.holders = df.stock.holders,
-                df.dividends = df.dividends,
-                company.segment = company.segment)
+                df.dividends = df.dividends)
 
   return(l.out)
 
